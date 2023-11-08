@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "rent-checklist/internal/app"
 
 func main() {
-	fmt.Println("Hello, World!")
+	app.App()
 }

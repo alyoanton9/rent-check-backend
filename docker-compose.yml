@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15.2-alpine
+    container_name: 'rent-checklist-postgres'
+    hostname: db
+    ports:
+      - '5432:5432'
+    networks:
+      - backend
+    env_file:
+      - .env
+    restart: always
+
+  api:
+    container_name: 'rent-checklist-api'
+    hostname: api
+    ports:
+      - '8080:8080'
+    networks:
+      - backend
+    depends_on:
+      - db
+    build: .
+    env_file:
+      - .env
+    restart: always
+
+networks:
+  backend:
+    driver: bridge
