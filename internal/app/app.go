@@ -31,7 +31,9 @@ func App() {
 	h := handler.NewHandler(flat, item)
 
 	e := echo.New()
+
 	e.Use(middleware.Logger())
+	e.Pre(middleware.RemoveTrailingSlash())
 
 	route.Setup(e, h)
 
