@@ -1,0 +1,412 @@
+openapi: 3.0.3
+
+info:
+  title: Rent Checklist
+  description: Service that aims to help in a flat choice by using checklists. There are flats, items of checklist and
+               tags these items can have. #TODO refactor
+  version: '1.0'
+
+tags:
+  - name: Flats
+    description: Requests and responses regarding flats
+  - name: Items
+    description: Requests and responses regarding checklist items
+  - name: Tags
+    description: Requests and responses regarding item tags
+  - name: Other
+
+servers:
+  - url: 'http://localhost:8080/api/v1' # TODO replace when deployed
+
+paths:
+  /flat:
+    get:
+      tags:
+        - Flats
+      summary: Get flats
+      responses:
+        200:
+          description: List of flat objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flat'
+    post:
+      tags:
+        - Flats
+      summary: Post flat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewFlat'
+      responses:
+        200:
+          description: Flat added successfully
+        400:
+          description: Incorrect flat object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+
+  /flat/{flatId}:
+    parameters:
+      - name: flatId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Flats
+      summary: Get flat by ID
+      responses:
+        200:
+          description: Flat object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flat'
+        400:
+          description: Incorrect path parameter flatId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No flat with given flatId
+
+    put:
+      tags:
+        - Flats
+      summary: Update flat by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewFlat'
+      responses:
+        200:
+          description: Flat updated successfully
+        400:
+          description: Incorrect flat object or path parameter flatId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No flat with given flatId
+
+    delete:
+      tags:
+        - Flats
+      summary: Delete flat by ID
+      responses:
+        200:
+          description: Flat deleted successfully
+        400:
+          description: Incorrect path parameter flatId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No flat with given flatId
+
+  /tag:
+    get:
+      tags:
+        - Tags
+      summary: Get tags
+      responses:
+        200:
+          description: List of tag objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+    post:
+      tags:
+        - Tags
+      summary: Post tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTag'
+      responses:
+        200:
+          description: Tag added successfully
+        400:
+          description: Incorrect tag object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+
+  /tag/{tagId}:
+    parameters:
+      - name: tagId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Tags
+      summary: Get tag by ID
+      responses:
+        200:
+          description: Tag object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        400:
+          description: Incorrect path parameter tagId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No tag with given tagId
+
+    put:
+      tags:
+        - Tags
+      summary: Update tag by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTag'
+      responses:
+        200:
+          description: Tag updated successfully
+        400:
+          description: Incorrect tag object or path parameter tagId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No tag with given tagId
+
+    delete:
+      tags:
+        - Tags
+      summary: Delete tag by ID
+      responses:
+        200:
+          description: Tag deleted successfully
+        400:
+          description: Incorrect path parameter tagId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No tag with given tagId
+
+  /item:
+    get:
+      tags:
+        - Items
+      summary: Get items
+      responses:
+        200:
+          description: List of item objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+    post:
+      tags:
+        - Items
+      summary: Post item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewItem'
+      responses:
+        200:
+          description: Item added successfully
+        400:
+          description: Incorrect item object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+
+  /item/{itemId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Items
+      summary: Get item by ID
+      responses:
+        200:
+          description: Item object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        400:
+          description: Incorrect path parameter itemId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No item with given itemId
+
+    put:
+      tags:
+        - Items
+      summary: Update item by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewItem'
+      responses:
+        200:
+          description: Item updated successfully
+        400:
+          description: Incorrect item object or path parameter itemId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No item with given itemId
+
+    delete:
+      tags:
+        - Items
+      summary: Delete item by ID
+      responses:
+        200:
+          description: Item deleted successfully
+        400:
+          description: Incorrect path parameter itemId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        404:
+          description: No item with given itemId
+
+  /:
+    get:
+      tags:
+        - Other
+      summary: Homepage
+      description: Show homepage
+      responses:
+        200:
+          description: Welcome text # TODO authorization page
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  schemas:
+    Flat:
+      type: object
+      required:
+        - id
+        - address
+      properties:
+        id:
+          type: integer
+        address:
+          type: string
+        notes:
+          type: string
+
+    NewFlat:
+      type: object
+      required:
+        - address
+      properties:
+        address:
+          type: string
+        notes:
+          type: string
+
+    Tag:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+
+    NewTag:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+
+    Item:
+      type: object
+      required:
+        - id
+        - title
+        - tagId
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        tagId:
+          type: integer
+
+    NewItem:
+      type: object
+      required:
+        - title
+        - tagId
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        tagId:
+          type: integer
+
+    BadRequest:
+      type: object
+      required:
+        - errorMsg
+      properties:
+        errorMsg:
+          type: string
