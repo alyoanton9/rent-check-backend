@@ -8,5 +8,7 @@ import (
 func Setup(e *echo.Echo, h handler.Handler) {
 	group := e.Group("/api/v1")
 
+	group.POST("/flats", h.CreateFlat)
+
 	group.GET("", h.HomePage)
 }

@@ -7,16 +7,18 @@ import (
 )
 
 type Handler interface {
+	CreateFlat(c echo.Context) error
+
 	HomePage(c echo.Context) error
 }
 
 type handler struct {
-	flat repository.FlatRepository
-	item repository.ItemRepository
+	flatRepository repository.FlatRepository
+	itemRepository repository.ItemRepository
 }
 
 func NewHandler(flat repository.FlatRepository, item repository.ItemRepository) Handler {
-	return &handler{flat: flat, item: item}
+	return &handler{flatRepository: flat, itemRepository: item}
 }
 
 func (h handler) HomePage(c echo.Context) error {
