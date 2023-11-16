@@ -1,14 +1,16 @@
 package repository
 
-import "github.com/go-pg/pg/v10"
+import (
+	"gorm.io/gorm"
+)
 
 type ItemRepository interface {
 }
 
 type itemRepository struct {
-	db *pg.DB
+	db *gorm.DB
 }
 
-func NewItemRepository(db *pg.DB) ItemRepository {
+func NewItemRepository(db *gorm.DB) ItemRepository {
 	return &itemRepository{db: db}
 }

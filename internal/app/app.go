@@ -3,9 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/go-pg/pg/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"gorm.io/gorm"
 	"log"
 	"os"
 	"rent-checklist/internal/config"
@@ -20,7 +20,7 @@ func App() {
 
 	appConfig := initConfig()
 
-	var db *pg.DB
+	var db *gorm.DB
 	db, err := postgres.New(appConfig.Postgres, ctx)
 	if err != nil {
 		log.Fatal(err)

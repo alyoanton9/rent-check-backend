@@ -1,6 +1,6 @@
 package dto
 
-import "rent-checklist/internal/models"
+import "rent-checklist/internal/model"
 
 type FlatRequest struct {
 	Title       string `json:"title"`
@@ -8,8 +8,8 @@ type FlatRequest struct {
 	Address     string `json:"address"`
 }
 
-func (flatRequest FlatRequest) ToModel() models.Flat {
-	return models.Flat{
+func (flatRequest FlatRequest) ToModel() model.Flat {
+	return model.Flat{
 		Title:       flatRequest.Title,
 		Description: flatRequest.Description,
 		Address:     flatRequest.Address,

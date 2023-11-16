@@ -3,37 +3,38 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"github.com/go-pg/pg/v10"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
 )
 
 const migrationPath string = "file://internal/database/postgres/migrations"
 
-func New(config Config, ctx context.Context) (*pg.DB, error) {
+func New(config Config, ctx context.Context) (*gorm.DB, error) {
 	connString := makeConnectionString(config)
-
-	log.Printf("connection string: %s", connString)
 
 	m, err := migrate.New(migrationPath, connString)
 	if err != nil {
-		return nil, fmt.Errorf("error migrating database: %s", err)
+		return nil, fmt.Errorf("error connecting to database to migrate: %s", err)
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return nil, err
 	}
 
-	dbClient := pg.Connect(&pg.Options{
-		Addr:     fmt.Sprintf("%s:%s", config.Host, config.Port),
-		User:     config.User,
-		Password: config.Password,
-		Database: config.Database,
-	})
+	version, dirty, err := m.Version()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	return dbClient, nil
+	log.Printf("applied migration: %d, dirty: %t\n", version, dirty)
+
+	db, err := gorm.Open(postgres.Open(connString), &gorm.Config{})
+
+	return db, nil
 }
 
 func makeConnectionString(cfg Config) string {

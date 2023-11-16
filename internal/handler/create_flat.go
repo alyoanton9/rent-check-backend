@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"errors"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 	"rent-checklist/internal/dto"
+	e "rent-checklist/internal/error"
 )
 
 func (h handler) CreateFlat(ctx echo.Context) error {
@@ -16,7 +19,15 @@ func (h handler) CreateFlat(ctx echo.Context) error {
 
 	err := h.flatRepository.CreateFlat(&flat)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		log.Printf("error creating flat: %v", err.Error())
+
+		var keyAlreadyExist *e.KeyAlreadyExist
+		if errors.As(err, &keyAlreadyExist) {
+			errorResponse := e.UniqueErrorResponse{Field: keyAlreadyExist.Field, Msg: keyAlreadyExist.Msg}
+			return ctx.JSON(http.StatusBadRequest, errorResponse)
+		}
+
+		return echo.ErrInternalServerError
 	}
 
 	var flatResponse dto.FlatResponse

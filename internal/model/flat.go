@@ -1,4 +1,4 @@
-package models
+package model
 
 type Flat struct {
 	Id          uint64
