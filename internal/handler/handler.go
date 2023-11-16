@@ -7,6 +7,7 @@ import (
 )
 
 type Handler interface {
+	GetFlats(c echo.Context) error
 	CreateFlat(c echo.Context) error
 
 	HomePage(c echo.Context) error

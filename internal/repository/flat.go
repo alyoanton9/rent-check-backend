@@ -7,6 +7,7 @@ import (
 )
 
 type FlatRepository interface {
+	GetFlats() ([]model.Flat, error)
 	CreateFlat(flat *model.Flat) error
 }
 
@@ -18,6 +19,17 @@ func NewFlatRepository(db *gorm.DB) FlatRepository {
 	return &flatRepository{
 		db: db,
 	}
+}
+
+func (repo flatRepository) GetFlats() ([]model.Flat, error) {
+	var flats []model.Flat
+	err := repo.db.Find(&flats).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return flats, nil
 }
 
 func (repo flatRepository) CreateFlat(flat *model.Flat) error {
