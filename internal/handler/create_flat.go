@@ -15,7 +15,7 @@ func (h handler) CreateFlat(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	flat := flatRequest.ToModel()
+	flat := dto.ToModel(flatRequest)
 
 	err := h.flatRepository.CreateFlat(&flat)
 	if err != nil {
@@ -30,8 +30,7 @@ func (h handler) CreateFlat(ctx echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	var flatResponse dto.FlatResponse
-	(&flatResponse).FromModel(flat)
+	flatResponse := dto.FromModel(flat)
 
 	return ctx.JSON(http.StatusOK, flatResponse)
 }

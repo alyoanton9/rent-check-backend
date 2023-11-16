@@ -9,9 +9,11 @@ type FlatResponse struct {
 	Address     string `json:"address"`
 }
 
-func (flatResponse *FlatResponse) FromModel(flat model.Flat) {
-	flatResponse.Id = flat.Id
-	flatResponse.Title = flat.Title
-	flatResponse.Description = flat.Description
-	flatResponse.Address = flat.Address
+func FromModel(flat model.Flat) FlatResponse {
+	return FlatResponse{
+		Id:          flat.Id,
+		Title:       flat.Title,
+		Description: flat.Description,
+		Address:     flat.Address,
+	}
 }
