@@ -5,7 +5,7 @@ CREATE TABLE "users" (
 
 CREATE TABLE "flats" (
                          "id" bigserial PRIMARY KEY,
-                         "title" varchar UNIQUE,
+                         "title" varchar,
                          "description" varchar,
                          "address" varchar UNIQUE NOT NULL
 );
