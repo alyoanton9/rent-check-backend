@@ -5,8 +5,8 @@ import (
 	"github.com/samber/lo"
 	"log"
 	"net/http"
-	"rent-checklist/internal/dto"
-	"rent-checklist/internal/model"
+	"rent-checklist-backend/internal/dto"
+	"rent-checklist-backend/internal/model"
 )
 
 func (h handler) GetFlats(ctx echo.Context) error {

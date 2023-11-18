@@ -1,6 +1,6 @@
 package dto
 
-import "rent-checklist/internal/model"
+import "rent-checklist-backend/internal/model"
 
 type FlatResponse struct {
 	Id          uint64 `json:"id"`

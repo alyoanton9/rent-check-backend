@@ -1,6 +1,6 @@
 package dto
 
-import "rent-checklist/internal/model"
+import "rent-checklist-backend/internal/model"
 
 type FlatRequest struct {
 	Title       string `json:"title"`

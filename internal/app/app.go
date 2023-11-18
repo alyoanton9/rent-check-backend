@@ -8,11 +8,11 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"os"
-	"rent-checklist/internal/config"
-	"rent-checklist/internal/database/postgres"
-	"rent-checklist/internal/handler"
-	"rent-checklist/internal/repository"
-	"rent-checklist/internal/route"
+	"rent-checklist-backend/internal/config"
+	"rent-checklist-backend/internal/database/postgres"
+	"rent-checklist-backend/internal/handler"
+	"rent-checklist-backend/internal/repository"
+	"rent-checklist-backend/internal/route"
 )
 
 func App() {

@@ -2,7 +2,7 @@ package route
 
 import (
 	"github.com/labstack/echo/v4"
-	"rent-checklist/internal/handler"
+	"rent-checklist-backend/internal/handler"
 )
 
 func Setup(e *echo.Echo, h handler.Handler) {

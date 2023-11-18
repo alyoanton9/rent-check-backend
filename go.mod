@@ -1,4 +1,4 @@
-module rent-checklist
+module rent-checklist-backend
 
 go 1.21
 

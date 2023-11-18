@@ -5,8 +5,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
-	"rent-checklist/internal/dto"
-	e "rent-checklist/internal/error"
+	"rent-checklist-backend/internal/dto"
+	e "rent-checklist-backend/internal/error"
 )
 
 func (h handler) CreateFlat(ctx echo.Context) error {

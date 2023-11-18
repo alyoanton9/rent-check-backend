@@ -1,6 +1,6 @@
 package config
 
-import "rent-checklist/internal/database/postgres"
+import "rent-checklist-backend/internal/database/postgres"
 
 type Config struct {
 	Port     string

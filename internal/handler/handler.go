@@ -3,12 +3,12 @@ package handler
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"rent-checklist/internal/repository"
+	"rent-checklist-backend/internal/repository"
 )
 
 type Handler interface {
-	GetFlats(c echo.Context) error
-	CreateFlat(c echo.Context) error
+	GetFlats(ctx echo.Context) error
+	CreateFlat(ctx echo.Context) error
 
 	HomePage(c echo.Context) error
 }
@@ -22,6 +22,6 @@ func NewHandler(flat repository.FlatRepository, item repository.ItemRepository) 
 	return &handler{flatRepository: flat, itemRepository: item}
 }
 
-func (h handler) HomePage(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World!")
+func (h handler) HomePage(ctx echo.Context) error {
+	return ctx.String(http.StatusOK, "Hello, World!")
 }

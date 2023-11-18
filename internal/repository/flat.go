@@ -2,8 +2,8 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	e "rent-checklist/internal/error"
-	"rent-checklist/internal/model"
+	e "rent-checklist-backend/internal/error"
+	"rent-checklist-backend/internal/model"
 )
 
 type FlatRepository interface {
