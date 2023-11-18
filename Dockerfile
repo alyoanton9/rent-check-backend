@@ -9,6 +9,6 @@ COPY . ./
 
 RUN go build -v -o /rent-checklist-app cmd/main.go
 
-EXPOSE 8080
+EXPOSE 2345
 
 CMD ["/rent-checklist-app"]

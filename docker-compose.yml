@@ -16,7 +16,7 @@ services:
     container_name: 'rent-checklist-api'
     hostname: api
     ports:
-      - '8080:8080'
+      - '2345:2345'
     networks:
       - backend
     depends_on:
