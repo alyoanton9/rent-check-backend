@@ -3,18 +3,17 @@ package handler
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
-	"log"
 	"net/http"
 	"rent-checklist-backend/internal/dto"
 	"rent-checklist-backend/internal/model"
 )
 
 func (h handler) GetFlats(ctx echo.Context) error {
-	flats, err := h.flatRepository.GetFlats()
-	if err != nil {
-		log.Printf("error getting flats: %v", err.Error())
+	userId := ctx.Get("userId").(string)
 
-		return echo.ErrInternalServerError
+	flats, err := h.flatRepository.GetFlats(userId)
+	if err != nil {
+		return HandleDbError(ctx, err, "error getting flats")
 	}
 
 	flatsResponse := lo.Map(flats, func(flat model.Flat, _ int) dto.FlatResponse {

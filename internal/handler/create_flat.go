@@ -1,33 +1,25 @@
 package handler
 
 import (
-	"errors"
 	"github.com/labstack/echo/v4"
-	"log"
 	"net/http"
 	"rent-checklist-backend/internal/dto"
-	e "rent-checklist-backend/internal/error"
 )
 
 func (h handler) CreateFlat(ctx echo.Context) error {
-	var flatRequest dto.FlatRequest
-	if err := ctx.Bind(&flatRequest); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	userId := ctx.Get("userId").(string)
+
+	var flatRequest *dto.FlatRequest
+	err := ParseBody(ctx, &flatRequest, "flat request")
+	if err != nil {
+		return err
 	}
 
-	flat := dto.ToModel(flatRequest)
+	flat := dto.ToModel(*flatRequest, userId)
 
-	err := h.flatRepository.CreateFlat(&flat)
+	err = h.flatRepository.CreateFlat(&flat)
 	if err != nil {
-		log.Printf("error creating flat: %v", err.Error())
-
-		var keyAlreadyExist *e.KeyAlreadyExist
-		if errors.As(err, &keyAlreadyExist) {
-			errorResponse := e.UniqueErrorResponse{Field: keyAlreadyExist.Field, Msg: keyAlreadyExist.Msg}
-			return ctx.JSON(http.StatusBadRequest, errorResponse)
-		}
-
-		return echo.ErrInternalServerError
+		return HandleDbError(ctx, err, "error creating flat")
 	}
 
 	flatResponse := dto.FromModel(flat)

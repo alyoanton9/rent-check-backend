@@ -10,11 +10,15 @@ import (
 type Handler interface {
 	GetFlats(ctx echo.Context) error
 	CreateFlat(ctx echo.Context) error
+	DeleteFlat(ctx echo.Context) error
+	UpdateFlat(ctx echo.Context) error
 
-	HomePage(c echo.Context) error
+	HomePage(ctx echo.Context) error
+	RegisterUser(ctx echo.Context) error
 }
 
 type handler struct {
+	userRepository repository.UserRepository
 	flatRepository repository.FlatRepository
 	itemRepository repository.ItemRepository
 	authService    service.AuthService

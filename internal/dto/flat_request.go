@@ -8,10 +8,11 @@ type FlatRequest struct {
 	Address     string `json:"address"`
 }
 
-func ToModel(flatRequest FlatRequest) model.Flat {
+func ToModel(flatRequest FlatRequest, ownerId string) model.Flat {
 	return model.Flat{
 		Title:       flatRequest.Title,
 		Description: flatRequest.Description,
 		Address:     flatRequest.Address,
+		OwnerId:     ownerId,
 	}
 }
