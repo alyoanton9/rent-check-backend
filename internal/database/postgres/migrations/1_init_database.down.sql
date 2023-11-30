@@ -9,5 +9,3 @@ DROP TABLE If EXISTS "items" CASCADE;
 DROP TABLE If EXISTS "user_flats" CASCADE;
 
 DROP TABLE If EXISTS "flat_groups" CASCADE;
-
-DROP TABLE IF EXISTS "flat_group_items";
