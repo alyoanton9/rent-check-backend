@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"rent-checklist-backend/internal/repository"
+	"rent-checklist-backend/internal/service"
 )
 
 type Handler interface {
@@ -16,10 +17,11 @@ type Handler interface {
 type handler struct {
 	flatRepository repository.FlatRepository
 	itemRepository repository.ItemRepository
+	authService    service.AuthService
 }
 
-func NewHandler(flat repository.FlatRepository, item repository.ItemRepository) Handler {
-	return &handler{flatRepository: flat, itemRepository: item}
+func NewHandler(user repository.UserRepository, flat repository.FlatRepository, item repository.ItemRepository, auth service.AuthService) Handler {
+	return &handler{userRepository: user, flatRepository: flat, itemRepository: item, authService: auth}
 }
 
 func (h handler) HomePage(ctx echo.Context) error {
