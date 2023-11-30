@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
 	"log"
 	"os"
 	"rent-checklist-backend/internal/config"
 	"rent-checklist-backend/internal/database/postgres"
 	"rent-checklist-backend/internal/handler"
+	"rent-checklist-backend/internal/middleware"
 	"rent-checklist-backend/internal/repository"
 	"rent-checklist-backend/internal/route"
+	"rent-checklist-backend/internal/service"
 )
 
 func App() {
@@ -26,14 +28,18 @@ func App() {
 		log.Fatal(err)
 	}
 
-	flat := repository.NewFlatRepository(db)
-	item := repository.NewItemRepository(db)
-	h := handler.NewHandler(flat, item)
+	userRepository := repository.NewUserRepository(db)
+	flatRepository := repository.NewFlatRepository(db)
+	itemRepository := repository.NewItemRepository(db)
+	authService := service.NewAuthService()
+
+	h := handler.NewHandler(userRepository, flatRepository, itemRepository, authService)
 
 	e := echo.New()
 
-	e.Use(middleware.Logger())
-	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(echoMiddleware.Logger())
+	e.Pre(echoMiddleware.RemoveTrailingSlash())
+	e.Use(echoMiddleware.KeyAuthWithConfig(middleware.MakeAuthConfig(authService, userRepository)))
 
 	route.Setup(e, h)
 
