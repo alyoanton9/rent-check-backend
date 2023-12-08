@@ -1,4 +1,4 @@
-package model
+package entity
 
 type UserFlat struct {
 	UserId string `gorm:"primaryKey"`

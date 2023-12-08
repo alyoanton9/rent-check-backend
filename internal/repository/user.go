@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"errors"
 	"gorm.io/gorm"
+	"rent-checklist-backend/internal/entity"
 	e "rent-checklist-backend/internal/error"
 	"rent-checklist-backend/internal/model"
 )
@@ -21,45 +23,60 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (repo userRepository) GetUserById(id string) (*model.User, error) {
-	user := model.User{Id: id}
-	res := repo.db.First(&user)
+	userRecord := entity.User{Id: id}
 
-	err := RaiseDbError(res, &e.KeyNotFound{Msg: "not-found", Field: "id"})
+	err := repo.db.First(&userRecord).Error
+
+	if errors.As(err, &gorm.ErrRecordNotFound) {
+		err = &e.KeyNotFound{Msg: "not-found", Field: "id"}
+	}
 	if err != nil {
 		return nil, err
 	}
+
+	user := model.EntityToUser(userRecord)
 
 	return &user, nil
 }
 
 func (repo userRepository) GetUserByAuthToken(authToken string) (*model.User, error) {
-	var user model.User
-	res := repo.db.Where(&model.User{AuthToken: authToken}).First(&user)
+	var userRecord entity.User
+	err := repo.db.Where(&entity.User{AuthToken: authToken}).First(&userRecord).Error
 
-	err := RaiseDbError(res, &e.KeyNotFound{Msg: "not-found", Field: "auth_token"})
+	if errors.As(err, &gorm.ErrRecordNotFound) {
+		err = &e.KeyNotFound{Msg: "not-found", Field: "auth_token"}
+	}
 	if err != nil {
 		return nil, err
 	}
+
+	user := model.EntityToUser(userRecord)
 
 	return &user, nil
 
 }
 
 func (repo userRepository) CreateUser(user *model.User) error {
-	var existingUser model.User
-	res := repo.db.Where(&model.User{AuthToken: user.AuthToken}).First(&existingUser)
+	userRecord := model.UserToEntity(*user)
+	err := repo.db.Where(&entity.User{AuthToken: userRecord.AuthToken}).First(&entity.User{}).Error
 
-	err := res.Error
-	if res.RowsAffected > 0 {
+	if !errors.As(err, &gorm.ErrRecordNotFound) {
 		err = &e.KeyAlreadyExist{Msg: "unique", Field: "auth_token"}
 	}
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil {
 		return err
 	}
 
-	res = repo.db.Where(user.Id).FirstOrCreate(&user)
+	err = repo.db.Create(&userRecord).Error
 
-	err = RaiseDbError(res, &e.KeyAlreadyExist{Msg: "unique", Field: "id"})
+	if errors.As(err, &gorm.ErrDuplicatedKey) {
+		err = &e.KeyAlreadyExist{Msg: "unique", Field: "id"}
+	}
+	if err != nil {
+		return err
+	}
+
+	*user = model.EntityToUser(userRecord)
 
 	return err
 }

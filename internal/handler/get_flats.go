@@ -17,7 +17,7 @@ func (h handler) GetFlats(ctx echo.Context) error {
 	}
 
 	flatsResponse := lo.Map(flats, func(flat model.Flat, _ int) dto.FlatResponse {
-		return dto.FromModel(flat)
+		return model.FlatToDto(flat)
 	})
 
 	return ctx.JSON(http.StatusOK, flatsResponse)

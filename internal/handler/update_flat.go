@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"rent-checklist-backend/internal/dto"
+	"rent-checklist-backend/internal/model"
 )
 
 func (h handler) UpdateFlat(ctx echo.Context) error {
@@ -20,7 +21,7 @@ func (h handler) UpdateFlat(ctx echo.Context) error {
 		return err
 	}
 
-	flat := dto.ToModel(*flatRequest, "")
+	flat := model.DtoToFlat(*flatRequest, "")
 	flat.Id = flatId
 
 	err = h.flatRepository.UpdateFlat(&flat, userId)
@@ -29,7 +30,7 @@ func (h handler) UpdateFlat(ctx echo.Context) error {
 		return HandleDbError(ctx, err, "error updating flat")
 	}
 
-	flatResponse := dto.FromModel(flat)
+	flatResponse := model.FlatToDto(flat)
 
 	return ctx.JSON(http.StatusOK, flatResponse)
 }

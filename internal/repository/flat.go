@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"errors"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"rent-checklist-backend/internal/entity"
 	e "rent-checklist-backend/internal/error"
 	"rent-checklist-backend/internal/model"
 	"slices"
@@ -27,9 +30,8 @@ func NewFlatRepository(db *gorm.DB) FlatRepository {
 
 func (repo flatRepository) GetFlats(userId string) ([]model.Flat, error) {
 	var flatIds []uint64
-	// TODO: check if raw "user_id = ?" can be replaced with
-	// smth like model.UserFlat{UserId: userId}
-	err := repo.db.Model(&[]model.UserFlat{}).Where("user_id = ?", userId).Pluck("flat_id", &flatIds).Error
+	err := repo.db.Model(&[]entity.UserFlat{}).Where(
+		"user_id = ?", userId).Pluck("flat_id", &flatIds).Error
 	if err != nil {
 		return nil, err
 	}
@@ -38,73 +40,105 @@ func (repo flatRepository) GetFlats(userId string) ([]model.Flat, error) {
 		return nil, nil
 	}
 
-	var flats []model.Flat
-	err = repo.db.Where(flatIds).Find(&flats).Error
+	var flatRecords []entity.Flat
+	err = repo.db.Where(flatIds).Find(&flatRecords).Error
 	if err != nil {
 		return nil, err
 	}
+
+	flats := lo.Map(flatRecords, func(flat entity.Flat, _ int) model.Flat {
+		return model.EntityToFlat(flat)
+	})
 
 	return flats, nil
 }
 
 func (repo flatRepository) CreateFlat(flat *model.Flat) error {
-	res := repo.db.Where(model.Flat{Address: flat.Address, OwnerId: flat.OwnerId}).FirstOrCreate(&flat)
+	flatRecord := model.FlatToEntity(*flat)
 
-	err := RaiseDbError(res, &e.KeyAlreadyExist{Msg: "unique", Field: "address"})
-	if err != nil {
+	err := repo.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Create(&flatRecord).Error
+
+		if errors.As(err, &gorm.ErrDuplicatedKey) {
+			err = &e.KeyAlreadyExist{Msg: "unique", Field: "address"}
+		}
+		if err != nil {
+			return err
+		}
+
+		err = tx.Create(
+			&entity.UserFlat{UserId: flatRecord.OwnerId, FlatId: flatRecord.Id}).Error
+
 		return err
-	}
+	})
 
-	res = repo.db.Create(&model.UserFlat{UserId: flat.OwnerId, FlatId: flat.Id})
-
-	err = RaiseDbError(res, &e.KeyAlreadyExist{Msg: "unique", Field: "flat_id,user_id"})
-	if err != nil {
-		return err
-	}
+	*flat = model.EntityToFlat(flatRecord)
 
 	return err
 }
 
 func (repo flatRepository) DeleteFlat(flatId uint64, userId string) error {
 	var ownerId string
-	res := repo.db.Model(&model.Flat{}).Where(flatId).Pluck("owner_id", &ownerId)
+	err := repo.db.Model(&entity.Flat{}).Where(flatId).Pluck("owner_id", &ownerId).Error
 
-	err := RaiseDbError(res, &e.KeyNotFound{Msg: "not-found", Field: "id"})
+	// 'Pluck' doesn't return 'ErrRecordNotFound'
+	if ownerId == "" {
+		err = &e.KeyNotFound{Msg: "not-found", Field: "id"}
+	}
 	if err != nil {
 		return err
 	}
 
-	res = repo.db.Delete(&model.UserFlat{UserId: userId, FlatId: flatId})
+	err = repo.db.Transaction(func(tx *gorm.DB) error {
+		res := repo.db.Delete(&entity.UserFlat{UserId: userId, FlatId: flatId})
 
-	err = RaiseDbError(res, &e.ForbiddenAction{Msg: "has", Field: "flat_id"})
-	if err != nil {
-		return err
-	}
-
-	if ownerId == userId {
-		err = repo.db.Delete(&model.Flat{}, flatId).Error
+		if res.RowsAffected == 0 {
+			err = &e.ForbiddenAction{Msg: "has", Field: "id"}
+		}
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		if ownerId == userId {
+			err = repo.db.Delete(&entity.Flat{}, flatId).Error
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	return err
 }
 
 func (repo flatRepository) UpdateFlat(flat *model.Flat, userId string) error {
 	var userIds []string
-	res := repo.db.Model(&model.UserFlat{}).Where(&model.UserFlat{FlatId: flat.Id}).Pluck("user_id", &userIds)
+	err := repo.db.Model(&entity.UserFlat{}).Where(
+		&entity.UserFlat{FlatId: flat.Id}).Pluck("user_id", &userIds).Error
 
-	err := RaiseDbError(res, &e.KeyNotFound{Msg: "not-found", Field: "id"})
+	if userIds == nil {
+		err = &e.KeyNotFound{Msg: "not-found", Field: "id"}
+	}
 	if err != nil {
 		return err
 	}
 
 	if ok := slices.Contains(userIds, userId); !ok {
-		return &e.ForbiddenAction{Msg: "has", Field: "flat_id"}
+		return &e.ForbiddenAction{Msg: "has", Field: "id"}
 	}
 
-	res = repo.db.Model(&flat).Clauses(clause.Returning{}).Updates(flat)
+	flatRecord := model.FlatToEntity(*flat)
+	err = repo.db.Model(&flatRecord).Clauses(clause.Returning{}).Updates(flatRecord).Error
 
-	return RaiseDbError(res, &e.KeyAlreadyExist{Msg: "unique", Field: "address"})
+	if errors.As(err, &gorm.ErrDuplicatedKey) {
+		err = &e.KeyAlreadyExist{Msg: "unique", Field: "address"}
+	}
+	if err != nil {
+		return err
+	}
+
+	*flat = model.EntityToFlat(flatRecord)
+
+	return nil
 }
