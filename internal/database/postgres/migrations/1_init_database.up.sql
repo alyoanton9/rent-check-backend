@@ -20,13 +20,13 @@ CREATE TABLE "user_flats" (
 CREATE TABLE "groups" (
                           "id" bigserial PRIMARY KEY,
                           "user_id" varchar NOT NULL,
+                          "title" varchar NOT NULL,
                           "hide" bool NOT NULL
 );
 
 CREATE TABLE "flat_groups" (
                                "flat_id" bigint NOT NULL,
                                "group_id" bigint NOT NULL,
-                               "group_title" varchar NOT NULL,
                                PRIMARY KEY ("flat_id", "group_id")
 );
 
@@ -43,8 +43,6 @@ CREATE TABLE "items" (
 CREATE INDEX ON "users" ("auth_token");
 
 CREATE UNIQUE INDEX ON "flats" ("address", "owner_id");
-
-CREATE UNIQUE INDEX ON "flat_groups" ("flat_id", "group_title");
 
 CREATE UNIQUE INDEX ON "items" ("flat_id", "group_id", "title");
 
