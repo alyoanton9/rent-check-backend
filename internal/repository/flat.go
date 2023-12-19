@@ -117,7 +117,7 @@ func (repo flatRepository) UpdateFlat(flat *model.Flat, userId string) error {
 	err := repo.db.Model(&entity.UserFlat{}).Where(
 		&entity.UserFlat{FlatId: flat.Id}).Pluck("user_id", &userIds).Error
 
-	if userIds == nil {
+	if len(userIds) == 0 {
 		err = &e.KeyNotFound{Msg: "not-found", Field: "id"}
 	}
 	if err != nil {

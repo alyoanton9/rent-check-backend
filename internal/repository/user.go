@@ -61,10 +61,7 @@ func (repo userRepository) CreateUser(user *model.User) error {
 	err := repo.db.Where(&entity.User{AuthToken: userRecord.AuthToken}).First(&entity.User{}).Error
 
 	if !errors.As(err, &gorm.ErrRecordNotFound) {
-		err = &e.KeyAlreadyExist{Msg: "unique", Field: "auth_token"}
-	}
-	if err != nil {
-		return err
+		return &e.KeyAlreadyExist{Msg: "unique", Field: "auth_token"}
 	}
 
 	err = repo.db.Create(&userRecord).Error
