@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
@@ -30,10 +31,11 @@ func App() {
 
 	userRepository := repository.NewUserRepository(db)
 	flatRepository := repository.NewFlatRepository(db)
+	groupRepository := repository.NewGroupRepository(db)
 	itemRepository := repository.NewItemRepository(db)
 	authService := service.NewAuthService()
 
-	h := handler.NewHandler(userRepository, flatRepository, itemRepository, authService)
+	h := handler.NewHandler(userRepository, flatRepository, groupRepository, itemRepository, authService)
 
 	e := echo.New()
 
@@ -51,6 +53,12 @@ func App() {
 
 func initConfig() config.Config {
 	var appConfig config.Config
+
+	// TODO check necessity
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("failed to read .env file: %s", err.Error())
+	}
 
 	appConfig.Port = os.Getenv("HTTP_PORT")
 

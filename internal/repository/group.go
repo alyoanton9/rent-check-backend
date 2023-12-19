@@ -1,0 +1,152 @@
+package repository
+
+import (
+	"errors"
+	"github.com/samber/lo"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"rent-checklist-backend/internal/entity"
+	e "rent-checklist-backend/internal/error"
+	"rent-checklist-backend/internal/model"
+)
+
+type GroupRepository interface {
+	GetGroups(userId string) ([]model.Group, error)
+	CreateGroup(group *model.Group) error
+	UpdateGroup(group *model.Group, userId string) error
+	AddGroupToFlat(groupId, flatId uint64, userId string) error
+	DeleteGroupFromFlat(groupId uint64, flatId uint64, userId string) error
+	HideGroup(groupId uint64, userId string) error
+}
+
+type groupRepository struct {
+	db *gorm.DB
+}
+
+func NewGroupRepository(db *gorm.DB) GroupRepository {
+	return groupRepository{db: db}
+}
+
+func (repo groupRepository) GetGroups(userId string) ([]model.Group, error) {
+	var groupRecords []entity.Group
+	err := repo.db.Model(&[]entity.Group{}).Where(
+		"user_id = ? AND hide = false", userId).Find(&groupRecords).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if len(groupRecords) == 0 {
+		return nil, nil
+	}
+
+	groups := lo.Map(groupRecords, func(group entity.Group, _ int) model.Group {
+		return model.EntityToGroup(group)
+	})
+
+	return groups, nil
+}
+
+func (repo groupRepository) CreateGroup(group *model.Group) error {
+	groupRecord := model.GroupToEntity(*group)
+
+	err := repo.db.Create(&groupRecord).Error
+
+	if errors.As(err, &gorm.ErrDuplicatedKey) {
+		err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
+	}
+	if err != nil {
+		return err
+	}
+
+	*group = model.EntityToGroup(groupRecord)
+
+	return nil
+}
+
+func (repo groupRepository) UpdateGroup(group *model.Group, userId string) error {
+	err := checkUserHasGroup(repo.db, group.Id, userId)
+	if err != nil {
+		return err
+	}
+
+	groupRecord := model.GroupToEntity(*group)
+
+	err = repo.db.Model(&groupRecord).Clauses(clause.Returning{}).Updates(groupRecord).Error
+	if errors.As(err, &gorm.ErrDuplicatedKey) {
+		err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
+	}
+	if err != nil {
+		return err
+	}
+
+	*group = model.EntityToGroup(groupRecord)
+
+	return nil
+}
+
+func (repo groupRepository) AddGroupToFlat(groupId, flatId uint64, userId string) error {
+	err := checkUserHasFlat(repo.db, userId, flatId)
+	if err != nil {
+		return err
+	}
+
+	err = checkUserHasGroup(repo.db, groupId, userId)
+	if err != nil {
+		return err
+	}
+
+	err = repo.db.Create(&entity.FlatGroup{FlatId: flatId, GroupId: groupId}).Error
+
+	return err
+}
+
+func (repo groupRepository) DeleteGroupFromFlat(groupId, flatId uint64, userId string) error {
+	err := checkUserHasGroup(repo.db, groupId, userId)
+	if err != nil {
+		return err
+	}
+
+	res := repo.db.Delete(&entity.FlatGroup{FlatId: flatId, GroupId: groupId})
+	if res.RowsAffected == 0 {
+		err = &e.ForbiddenAction{Msg: "has", Field: "flat_id,group_id"} // TODO err msg needs refactoring
+	}
+
+	return err
+}
+
+func (repo groupRepository) HideGroup(groupId uint64, userId string) error {
+	err := checkUserHasGroup(repo.db, groupId, userId)
+	if err != nil {
+		return err
+	}
+
+	err = repo.db.Model(&entity.Group{}).Where(groupId).Update("hide", true).Error
+	return err
+}
+
+func checkUserHasGroup(db *gorm.DB, groupId uint64, userId string) error {
+	var groupUserId string
+	err := db.Model(&entity.Group{}).Where(groupId).Pluck("user_id", &groupUserId).Error
+
+	switch groupUserId {
+	case "":
+		err = &e.KeyNotFound{Msg: "not-found", Field: "group_id"}
+	case userId:
+		// ok
+	default:
+		err = &e.ForbiddenAction{Msg: "has", Field: "group_id"}
+	}
+
+	return err
+}
+
+func checkUserHasFlat(db *gorm.DB, userId string, flatId uint64) error {
+	var userFlat entity.UserFlat
+	err := db.Where(entity.UserFlat{UserId: userId, FlatId: flatId}).First(&userFlat).Error
+
+	if errors.As(err, &gorm.ErrRecordNotFound) {
+		err = &e.ForbiddenAction{Msg: "has", Field: "flat_id"}
+	}
+
+	return err
+}
