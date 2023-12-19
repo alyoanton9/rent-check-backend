@@ -44,6 +44,8 @@ CREATE INDEX ON "users" ("auth_token");
 
 CREATE UNIQUE INDEX ON "flats" ("address", "owner_id");
 
+CREATE UNIQUE INDEX ON "groups" ("title", "user_id");
+
 CREATE UNIQUE INDEX ON "items" ("flat_id", "group_id", "title");
 
 ALTER TABLE "flats" ADD FOREIGN KEY ("owner_id") REFERENCES "users" ("id") ON DELETE CASCADE;
