@@ -20,6 +20,11 @@ type Handler interface {
 	DeleteGroupFromFlat(ctx echo.Context) error
 	HideGroup(ctx echo.Context) error
 
+	GetItems(ctx echo.Context) error
+	CreateItem(ctx echo.Context) error
+	UpdateItem(ctx echo.Context) error
+	HideItem(ctx echo.Context) error
+
 	RegisterUser(ctx echo.Context) error
 
 	HomePage(ctx echo.Context) error

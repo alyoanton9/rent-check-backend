@@ -20,6 +20,11 @@ func Setup(e *echo.Echo, h handler.Handler) {
 	group.DELETE("/flats/:flatId/groups", h.DeleteGroupFromFlat)
 	group.DELETE("/groups/:id", h.HideGroup)
 
+	group.GET("/items", h.GetItems)
+	group.POST("/items", h.CreateItem)
+	group.PUT("/items/:id", h.UpdateItem)
+	group.DELETE("/items/:id", h.HideItem)
+
 	group.POST("/register", h.RegisterUser)
 
 	group.GET("", h.HomePage)
