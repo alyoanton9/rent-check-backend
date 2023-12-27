@@ -5,12 +5,20 @@ services:
     container_name: 'rent-checklist-postgres'
     hostname: db
     ports:
-      - '5432:5432'
+      - '4444:5432' # to host from container
     networks:
       - backend
     env_file:
       - .env
+    volumes:
+      - rent-checklist-volume:/var/lib/postgresql/data
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", $POSTGRES_DB ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
 
   api:
     container_name: 'rent-checklist-api'
@@ -20,7 +28,8 @@ services:
     networks:
       - backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     build: .
     env_file:
       - .env
@@ -29,3 +38,6 @@ services:
 networks:
   backend:
     driver: bridge
+
+volumes:
+  rent-checklist-volume:
