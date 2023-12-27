@@ -14,3 +14,9 @@ CREATE TABLE "flat_group_items" (
 );
 
 CREATE UNIQUE INDEX ON "flat_group_items" ("flat_id", "group_id", "item_id");
+
+ALTER TABLE "flat_group_items" ADD FOREIGN KEY ("flat_id") REFERENCES "flats" ("id") ON DELETE CASCADE;
+
+ALTER TABLE "flat_group_items" ADD FOREIGN KEY ("group_id") REFERENCES "groups" ("id") ON DELETE CASCADE;
+
+ALTER TABLE "flat_group_items" ADD FOREIGN KEY ("item_id") REFERENCES "items" ("id") ON DELETE CASCADE;
