@@ -11,7 +11,10 @@ import (
 func (h handler) GetGroups(ctx echo.Context) error {
 	userId := ctx.Get("userId").(string)
 
-	groups, err := h.groupRepository.GetGroups(userId)
+	idsString := ctx.QueryParam("ids")
+	ids := ParseQueryParamList(idsString)
+
+	groups, err := h.groupRepository.GetGroups(userId, ids)
 	if err != nil {
 		return HandleDbError(ctx, err, "error getting groups")
 	}

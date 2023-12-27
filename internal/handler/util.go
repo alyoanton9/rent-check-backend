@@ -2,10 +2,12 @@ package handler
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
 	"log"
 	"net/http"
 	e "rent-checklist-backend/internal/error"
 	"strconv"
+	"strings"
 )
 
 func HandleDbError(ctx echo.Context, err error, logPrefix string) error {
@@ -43,4 +45,17 @@ func ParseBody[T any](ctx echo.Context, dto *T, dtoName string) error {
 	}
 
 	return nil
+}
+
+func ParseQueryParamList(paramsString string) []uint64 {
+	if paramsString == "" {
+		return nil
+	}
+
+	paramsList := strings.Split(paramsString, ",")
+
+	return lo.Map(paramsList, func(str string, _ int) uint64 {
+		num, _ := strconv.ParseUint(str, 10, 64)
+		return num
+	})
 }

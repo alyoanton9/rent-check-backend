@@ -81,7 +81,6 @@ func (repo flatRepository) DeleteFlat(flatId uint64, userId string) error {
 	var ownerId string
 	err := repo.db.Model(&entity.Flat{}).Where(flatId).Pluck("owner_id", &ownerId).Error
 
-	// 'Pluck' doesn't return 'ErrRecordNotFound'
 	if ownerId == "" {
 		err = &e.KeyNotFound{Msg: "not-found", Field: "id"}
 	}
@@ -93,7 +92,7 @@ func (repo flatRepository) DeleteFlat(flatId uint64, userId string) error {
 		res := repo.db.Delete(&entity.UserFlat{UserId: userId, FlatId: flatId})
 
 		if res.RowsAffected == 0 {
-			err = &e.ForbiddenAction{Msg: "has", Field: "id"}
+			err = &e.ForbiddenAction{Msg: "has", Field: "userId,flatId"}
 		}
 		if err != nil {
 			return err
@@ -125,7 +124,7 @@ func (repo flatRepository) UpdateFlat(flat *model.Flat, userId string) error {
 	}
 
 	if ok := slices.Contains(userIds, userId); !ok {
-		return &e.ForbiddenAction{Msg: "has", Field: "id"}
+		return &e.ForbiddenAction{Msg: "has", Field: "userId,flatId"}
 	}
 
 	flatRecord := model.FlatToEntity(*flat)

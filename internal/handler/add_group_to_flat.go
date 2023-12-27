@@ -21,7 +21,7 @@ func (h handler) AddGroupToFlat(ctx echo.Context) error {
 
 	err = h.groupRepository.AddGroupToFlat(groupIdRequest.Id, flatId, userId)
 	if err != nil {
-		return HandleDbError(ctx, err, "error creating group")
+		return HandleDbError(ctx, err, "error adding group to flat")
 	}
 
 	return nil

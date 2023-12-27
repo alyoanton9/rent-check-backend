@@ -11,7 +11,7 @@ import (
 )
 
 type GroupRepository interface {
-	GetGroups(userId string) ([]model.Group, error)
+	GetGroups(userId string, ids []uint64) ([]model.Group, error)
 	CreateGroup(group *model.Group) error
 	UpdateGroup(group *model.Group, userId string) error
 	AddGroupToFlat(groupId, flatId uint64, userId string) error
@@ -27,16 +27,14 @@ func NewGroupRepository(db *gorm.DB) GroupRepository {
 	return groupRepository{db: db}
 }
 
-func (repo groupRepository) GetGroups(userId string) ([]model.Group, error) {
+func (repo groupRepository) GetGroups(userId string, ids []uint64) ([]model.Group, error) {
 	var groupRecords []entity.Group
-	err := repo.db.Model(&[]entity.Group{}).Where(
+
+	// TODO need to fail when some ids are not found?
+	err := repo.db.Model(&[]entity.Group{}).Where(ids).Where(
 		"user_id = ? AND hide = false", userId).Find(&groupRecords).Error
 	if err != nil {
 		return nil, err
-	}
-
-	if len(groupRecords) == 0 {
-		return nil, nil
 	}
 
 	groups := lo.Map(groupRecords, func(group entity.Group, _ int) model.Group {
@@ -96,6 +94,9 @@ func (repo groupRepository) AddGroupToFlat(groupId, flatId uint64, userId string
 	}
 
 	err = repo.db.Create(&entity.FlatGroup{FlatId: flatId, GroupId: groupId}).Error
+	if errors.As(err, &gorm.ErrDuplicatedKey) {
+		err = &e.KeyAlreadyExist{Msg: "unique", Field: "groupId"}
+	}
 
 	return err
 }
@@ -106,10 +107,21 @@ func (repo groupRepository) DeleteGroupFromFlat(groupId, flatId uint64, userId s
 		return err
 	}
 
-	res := repo.db.Delete(&entity.FlatGroup{FlatId: flatId, GroupId: groupId})
-	if res.RowsAffected == 0 {
-		err = &e.ForbiddenAction{Msg: "has", Field: "flat_id,group_id"} // TODO err msg needs refactoring
-	}
+	err = repo.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+
+		res := tx.Delete(&entity.FlatGroup{FlatId: flatId, GroupId: groupId})
+		if res.RowsAffected == 0 {
+			err = &e.ForbiddenAction{Msg: "has", Field: "flatId,groupId"} // TODO err msg needs refactoring
+		}
+		if err != nil {
+			return err
+		}
+
+		err = tx.Where("flat_id = ? AND group_id = ?", flatId, groupId).Delete(&entity.FlatGroupItem{}).Error
+
+		return err
+	})
 
 	return err
 }
@@ -134,7 +146,7 @@ func checkUserHasGroup(db *gorm.DB, groupId uint64, userId string) error {
 	case userId:
 		// ok
 	default:
-		err = &e.ForbiddenAction{Msg: "has", Field: "group_id"}
+		err = &e.ForbiddenAction{Msg: "has", Field: "userId,groupId"}
 	}
 
 	return err
@@ -145,7 +157,7 @@ func checkUserHasFlat(db *gorm.DB, userId string, flatId uint64) error {
 	err := db.Where(entity.UserFlat{UserId: userId, FlatId: flatId}).First(&userFlat).Error
 
 	if errors.As(err, &gorm.ErrRecordNotFound) {
-		err = &e.ForbiddenAction{Msg: "has", Field: "flat_id"}
+		err = &e.ForbiddenAction{Msg: "has", Field: "userId,flatId"}
 	}
 
 	return err
