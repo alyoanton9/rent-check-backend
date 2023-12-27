@@ -54,7 +54,7 @@ func (repo itemRepository) CreateItem(item *model.Item) error {
 	existingItemRecord := entity.Item{}
 
 	err := repo.db.Where("title = ?", item.Title).First(&existingItemRecord).Error
-	if errors.As(err, &gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		itemRecord := model.ItemToEntity(*item)
 		err = repo.db.Create(&itemRecord).Error
 
@@ -82,7 +82,7 @@ func (repo itemRepository) UpdateItem(item *model.Item, userId string) error {
 	itemRecord := model.ItemToEntity(*item)
 
 	err = repo.db.Model(&itemRecord).Clauses(clause.Returning{}).Updates(itemRecord).Error
-	if errors.As(err, &gorm.ErrDuplicatedKey) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
 	}
 	if err != nil {
@@ -124,7 +124,7 @@ func (repo itemRepository) AddItemToGroup(flatId, groupId, itemId uint64, userId
 	err = repo.db.Create(&entity.FlatGroupItem{
 		FlatId: flatId, GroupId: groupId, ItemId: itemId, Status: initialStatus.String(),
 	}).Error
-	if errors.As(err, &gorm.ErrDuplicatedKey) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		err = &e.KeyAlreadyExist{Msg: "unique", Field: "itemId"} // TODO error field: "flatId,groupId,itemId"?
 	}
 
@@ -185,7 +185,7 @@ func (repo itemRepository) UpdateItemStatus(flatId, groupId, itemId uint64, stat
 		FlatId: flatId, GroupId: groupId, ItemId: itemId,
 	}).Update("status", status).Error
 
-	if errors.As(err, &gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = &e.KeyNotFound{Msg: "has", Field: "flatId,groupId,itemId"}
 	}
 
@@ -212,7 +212,7 @@ func checkFlatHasGroup(db *gorm.DB, flatId, groupId uint64) error {
 	var flatGroup entity.FlatGroup
 	err := db.Where(entity.FlatGroup{FlatId: flatId, GroupId: groupId}).First(&flatGroup).Error
 
-	if errors.As(err, &gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = &e.ForbiddenAction{Msg: "has", Field: "flatId,groupId"}
 	}
 

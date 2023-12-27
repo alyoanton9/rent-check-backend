@@ -49,7 +49,7 @@ func (repo groupRepository) CreateGroup(group *model.Group) error {
 
 	err := repo.db.Create(&groupRecord).Error
 
-	if errors.As(err, &gorm.ErrDuplicatedKey) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
 	}
 	if err != nil {
@@ -70,7 +70,7 @@ func (repo groupRepository) UpdateGroup(group *model.Group, userId string) error
 	groupRecord := model.GroupToEntity(*group)
 
 	err = repo.db.Model(&groupRecord).Clauses(clause.Returning{}).Updates(groupRecord).Error
-	if errors.As(err, &gorm.ErrDuplicatedKey) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
 	}
 	if err != nil {
@@ -94,7 +94,7 @@ func (repo groupRepository) AddGroupToFlat(groupId, flatId uint64, userId string
 	}
 
 	err = repo.db.Create(&entity.FlatGroup{FlatId: flatId, GroupId: groupId}).Error
-	if errors.As(err, &gorm.ErrDuplicatedKey) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		err = &e.KeyAlreadyExist{Msg: "unique", Field: "groupId"}
 	}
 
@@ -156,7 +156,7 @@ func checkUserHasFlat(db *gorm.DB, userId string, flatId uint64) error {
 	var userFlat entity.UserFlat
 	err := db.Where(entity.UserFlat{UserId: userId, FlatId: flatId}).First(&userFlat).Error
 
-	if errors.As(err, &gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = &e.ForbiddenAction{Msg: "has", Field: "userId,flatId"}
 	}
 

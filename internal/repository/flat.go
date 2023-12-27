@@ -59,7 +59,7 @@ func (repo flatRepository) CreateFlat(flat *model.Flat) error {
 	err := repo.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Create(&flatRecord).Error
 
-		if errors.As(err, &gorm.ErrDuplicatedKey) {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			err = &e.KeyAlreadyExist{Msg: "unique", Field: "address"}
 		}
 		if err != nil {
@@ -130,7 +130,7 @@ func (repo flatRepository) UpdateFlat(flat *model.Flat, userId string) error {
 	flatRecord := model.FlatToEntity(*flat)
 	err = repo.db.Model(&flatRecord).Clauses(clause.Returning{}).Updates(flatRecord).Error
 
-	if errors.As(err, &gorm.ErrDuplicatedKey) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		err = &e.KeyAlreadyExist{Msg: "unique", Field: "address"}
 	}
 	if err != nil {
