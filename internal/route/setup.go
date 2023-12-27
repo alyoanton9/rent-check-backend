@@ -24,6 +24,10 @@ func Setup(e *echo.Echo, h handler.Handler) {
 	group.POST("/items", h.CreateItem)
 	group.PUT("/items/:id", h.UpdateItem)
 	group.DELETE("/items/:id", h.HideItem)
+	group.POST("/groups/:groupId/items", h.AddItemToGroup)
+	group.DELETE("/group/:groupId/items", h.DeleteItemFromGroup)
+	group.GET("/flats/:flatId/items", h.GetFlatItems)
+	group.POST("/items/status", h.UpdateItemStatus)
 
 	group.POST("/register", h.RegisterUser)
 

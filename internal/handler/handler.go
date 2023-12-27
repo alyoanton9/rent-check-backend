@@ -24,6 +24,10 @@ type Handler interface {
 	CreateItem(ctx echo.Context) error
 	UpdateItem(ctx echo.Context) error
 	HideItem(ctx echo.Context) error
+	AddItemToGroup(ctx echo.Context) error
+	DeleteItemFromGroup(ctx echo.Context) error
+	GetFlatItems(ctx echo.Context) error
+	UpdateItemStatus(ctx echo.Context) error
 
 	RegisterUser(ctx echo.Context) error
 
