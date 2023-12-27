@@ -8,6 +8,7 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
 	"log"
+	"net/http"
 	"os"
 	"rent-checklist-backend/internal/config"
 	"rent-checklist-backend/internal/database/postgres"
@@ -42,6 +43,15 @@ func App() {
 	e.Use(echoMiddleware.Logger())
 	e.Pre(echoMiddleware.RemoveTrailingSlash())
 	e.Use(echoMiddleware.KeyAuthWithConfig(middleware.MakeAuthConfig(authService, userRepository)))
+
+	e.Use(echoMiddleware.CORSWithConfig(echoMiddleware.CORSConfig{
+		AllowOrigins:     []string{"*"},
+		AllowCredentials: true,
+		AllowMethods: []string{
+			http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete, http.MethodOptions,
+		},
+		AllowHeaders: []string{echo.HeaderAuthorization, echo.HeaderContentType},
+	}))
 
 	route.Setup(e, h)
 

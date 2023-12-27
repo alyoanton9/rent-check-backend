@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"log"
+	"net/http"
 	"rent-checklist-backend/internal/repository"
 	"rent-checklist-backend/internal/service"
 )
@@ -27,7 +28,7 @@ func MakeAuthConfig(authService service.AuthService, userRepository repository.U
 	}
 
 	authConfig.Skipper = func(ctx echo.Context) bool {
-		return ctx.Request().URL.Path == "/api/v1/register"
+		return ctx.Request().URL.Path == "/api/v1/register" || ctx.Request().Method == http.MethodOptions
 	}
 
 	return authConfig
