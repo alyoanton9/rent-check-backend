@@ -30,11 +30,15 @@ func NewGroupRepository(db *gorm.DB) GroupRepository {
 func (repo groupRepository) GetGroups(userId string, ids []uint64) ([]model.Group, error) {
 	var groupRecords []entity.Group
 
-	// TODO need to fail when some ids are not found?
 	err := repo.db.Model(&[]entity.Group{}).Where(ids).Where(
 		"user_id = ? AND hide = false", userId).Find(&groupRecords).Error
 	if err != nil {
 		return nil, err
+	}
+
+	// TODO what is the correct way to return empty list -- nil or {}?
+	if len(groupRecords) == 0 {
+		return nil, nil
 	}
 
 	groups := lo.Map(groupRecords, func(group entity.Group, _ int) model.Group {
@@ -50,7 +54,9 @@ func (repo groupRepository) CreateGroup(group *model.Group) error {
 	err := repo.db.Create(&groupRecord).Error
 
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
+		err = &e.KeyAlreadyExist{Field: "title"}
+	} else if errors.Is(err, gorm.ErrForeignKeyViolated) {
+		err = &e.KeyNotFound{Field: "userId"}
 	}
 	if err != nil {
 		return err
@@ -71,7 +77,7 @@ func (repo groupRepository) UpdateGroup(group *model.Group, userId string) error
 
 	err = repo.db.Model(&groupRecord).Clauses(clause.Returning{}).Updates(groupRecord).Error
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
+		err = &e.KeyAlreadyExist{Field: "title"}
 	}
 	if err != nil {
 		return err
@@ -95,7 +101,7 @@ func (repo groupRepository) AddGroupToFlat(groupId, flatId uint64, userId string
 
 	err = repo.db.Create(&entity.FlatGroup{FlatId: flatId, GroupId: groupId}).Error
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		err = &e.KeyAlreadyExist{Msg: "unique", Field: "groupId"}
+		err = &e.KeyAlreadyExist{Field: "groupId"}
 	}
 
 	return err
@@ -112,7 +118,7 @@ func (repo groupRepository) DeleteGroupFromFlat(groupId, flatId uint64, userId s
 
 		res := tx.Delete(&entity.FlatGroup{FlatId: flatId, GroupId: groupId})
 		if res.RowsAffected == 0 {
-			err = &e.ForbiddenAction{Msg: "has", Field: "flatId,groupId"} // TODO err msg needs refactoring
+			err = &e.NoAccess{Field: "flatId,groupId"}
 		}
 		if err != nil {
 			return err
@@ -137,16 +143,16 @@ func (repo groupRepository) HideGroup(groupId uint64, userId string) error {
 }
 
 func checkUserHasGroup(db *gorm.DB, groupId uint64, userId string) error {
-	var groupUserId string
-	err := db.Model(&entity.Group{}).Where(groupId).Pluck("user_id", &groupUserId).Error
+	groupRecord := entity.Group{Id: groupId}
+	err := db.First(&groupRecord).Error
 
-	switch groupUserId {
-	case "":
-		err = &e.KeyNotFound{Msg: "not-found", Field: "group_id"}
-	case userId:
+	switch {
+	case groupRecord.UserId == "" || groupRecord.Hide:
+		err = &e.KeyNotFound{Field: "groupId"}
+	case groupRecord.UserId == userId:
 		// ok
 	default:
-		err = &e.ForbiddenAction{Msg: "has", Field: "userId,groupId"}
+		err = &e.NoAccess{Field: "userId,groupId"}
 	}
 
 	return err
@@ -157,7 +163,7 @@ func checkUserHasFlat(db *gorm.DB, userId string, flatId uint64) error {
 	err := db.Where(entity.UserFlat{UserId: userId, FlatId: flatId}).First(&userFlat).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = &e.ForbiddenAction{Msg: "has", Field: "userId,flatId"}
+		err = &e.NoAccess{Field: "userId,flatId"}
 	}
 
 	return err

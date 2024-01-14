@@ -24,8 +24,10 @@ func App() {
 
 	appConfig := initConfig()
 
+	const migrationPath string = "file://internal/database/postgres/migrations"
+
 	var db *gorm.DB
-	db, err := postgres.New(appConfig.Postgres, ctx)
+	db, err := postgres.New(appConfig.Postgres, migrationPath, ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,6 +43,8 @@ func App() {
 	e := echo.New()
 
 	e.Use(echoMiddleware.Logger())
+	e.Use(echoMiddleware.BodyDump(middleware.LogRequestAndResponseBody))
+
 	e.Pre(echoMiddleware.RemoveTrailingSlash())
 	e.Use(echoMiddleware.KeyAuthWithConfig(middleware.MakeAuthConfig(authService, userRepository)))
 

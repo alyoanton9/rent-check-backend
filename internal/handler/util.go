@@ -18,7 +18,7 @@ func HandleDbError(ctx echo.Context, err error, logPrefix string) error {
 		return ctx.JSON(http.StatusBadRequest, err)
 	case *e.KeyAlreadyExist:
 		return ctx.JSON(http.StatusBadRequest, err)
-	case *e.ForbiddenAction:
+	case *e.NoAccess:
 		return ctx.JSON(http.StatusForbidden, err)
 	default:
 		return echo.ErrInternalServerError

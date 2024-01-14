@@ -11,9 +11,7 @@ import (
 	"log"
 )
 
-const migrationPath string = "file://internal/database/postgres/migrations"
-
-func New(config Config, ctx context.Context) (*gorm.DB, error) {
+func New(config Config, migrationPath string, ctx context.Context) (*gorm.DB, error) {
 	connString := makeConnectionString(config)
 
 	m, err := migrate.New(migrationPath, connString)
@@ -32,7 +30,7 @@ func New(config Config, ctx context.Context) (*gorm.DB, error) {
 
 	log.Printf("applied migration: %d, dirty: %t\n", version, dirty)
 
-	db, err := gorm.Open(postgres.Open(connString), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(connString), &gorm.Config{TranslateError: true})
 
 	return db, nil
 }

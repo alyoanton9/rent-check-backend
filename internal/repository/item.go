@@ -6,7 +6,6 @@ import (
 	"github.com/samber/lo"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"log"
 	"rent-checklist-backend/internal/entity"
 	e "rent-checklist-backend/internal/error"
 	"rent-checklist-backend/internal/model"
@@ -66,7 +65,7 @@ func (repo itemRepository) CreateItem(item *model.Item) error {
 
 			*item = model.EntityToItem(existingItemRecord)
 		} else {
-			err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
+			err = &e.KeyAlreadyExist{Field: "title"}
 		}
 	}
 
@@ -83,7 +82,7 @@ func (repo itemRepository) UpdateItem(item *model.Item, userId string) error {
 
 	err = repo.db.Model(&itemRecord).Clauses(clause.Returning{}).Updates(itemRecord).Error
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		err = &e.KeyAlreadyExist{Msg: "unique", Field: "title"}
+		err = &e.KeyAlreadyExist{Field: "title"}
 	}
 	if err != nil {
 		return err
@@ -125,7 +124,7 @@ func (repo itemRepository) AddItemToGroup(flatId, groupId, itemId uint64, userId
 		FlatId: flatId, GroupId: groupId, ItemId: itemId, Status: initialStatus.String(),
 	}).Error
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		err = &e.KeyAlreadyExist{Msg: "unique", Field: "itemId"} // TODO error field: "flatId,groupId,itemId"?
+		err = &e.KeyAlreadyExist{Field: "flatId,groupId,itemId"}
 	}
 
 	return err
@@ -137,6 +136,11 @@ func (repo itemRepository) DeleteItemFromGroup(flatId, groupId, itemId uint64, u
 		return err
 	}
 
+	err = checkFlatHasGroup(repo.db, flatId, groupId)
+	if err != nil {
+		return err
+	}
+
 	err = checkUserHasItem(repo.db, itemId, userId)
 	if err != nil {
 		return err
@@ -144,7 +148,7 @@ func (repo itemRepository) DeleteItemFromGroup(flatId, groupId, itemId uint64, u
 
 	res := repo.db.Delete(&entity.FlatGroupItem{FlatId: flatId, GroupId: groupId, ItemId: itemId})
 	if res.RowsAffected == 0 {
-		err = &e.ForbiddenAction{Msg: "has", Field: "flatId,groupId,itemId"} // TODO err msg needs refactoring
+		err = &e.NoAccess{Field: "flatId,groupId,itemId"} // TODO err msg needs refactoring
 	}
 
 	return err
@@ -158,13 +162,12 @@ func (repo itemRepository) GetFlatItems(flatId uint64, userId string) ([]model.G
 
 	groupItemsRecords := make([]entity.GroupItem, 0)
 
-	// TODO: rewrite with SQL builder?
 	query := fmt.Sprintf(`
-		select items.id, title, description, user_id, hide, status, group_id
-		from items join flat_group_items on items.id = flat_group_items.item_id
-		where flat_id=%d`, flatId)
-
-	log.Printf("query: %s", query)
+		select items.id, title, description, user_id, hide, status, flat_groups.group_id
+		from flat_groups
+		left join flat_group_items on flat_groups.group_id=flat_group_items.group_id
+		left join items on items.id = flat_group_items.item_id
+		where flat_groups.flat_id=%d`, flatId)
 
 	err = repo.db.Raw(query).Scan(&groupItemsRecords).Error
 
@@ -176,7 +179,17 @@ func (repo itemRepository) GetFlatItems(flatId uint64, userId string) ([]model.G
 }
 
 func (repo itemRepository) UpdateItemStatus(flatId, groupId, itemId uint64, status model.Status, userId string) error {
-	err := checkUserHasItem(repo.db, itemId, userId)
+	err := checkUserHasFlat(repo.db, userId, flatId)
+	if err != nil {
+		return err
+	}
+
+	err = checkFlatHasGroup(repo.db, flatId, groupId)
+	if err != nil {
+		return err
+	}
+
+	err = checkUserHasItem(repo.db, itemId, userId)
 	if err != nil {
 		return err
 	}
@@ -186,23 +199,23 @@ func (repo itemRepository) UpdateItemStatus(flatId, groupId, itemId uint64, stat
 	}).Update("status", status).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = &e.KeyNotFound{Msg: "has", Field: "flatId,groupId,itemId"}
+		err = &e.KeyNotFound{Field: "flatId,groupId,itemId"}
 	}
 
 	return err
 }
 
 func checkUserHasItem(db *gorm.DB, itemId uint64, userId string) error {
-	var itemUserId string
-	err := db.Model(&entity.Item{}).Where(itemId).Pluck("user_id", &itemUserId).Error
+	itemRecord := entity.Item{Id: itemId}
+	err := db.First(&itemRecord).Error
 
-	switch itemUserId {
-	case "":
-		err = &e.KeyNotFound{Msg: "not-found", Field: "itemId"}
-	case userId:
+	switch {
+	case itemRecord.UserId == "" || itemRecord.Hide:
+		err = &e.KeyNotFound{Field: "itemId"}
+	case itemRecord.UserId == userId:
 		// ok
 	default:
-		err = &e.ForbiddenAction{Msg: "has", Field: "userId,itemId"}
+		err = &e.NoAccess{Field: "userId,itemId"}
 	}
 
 	return err
@@ -213,7 +226,7 @@ func checkFlatHasGroup(db *gorm.DB, flatId, groupId uint64) error {
 	err := db.Where(entity.FlatGroup{FlatId: flatId, GroupId: groupId}).First(&flatGroup).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = &e.ForbiddenAction{Msg: "has", Field: "flatId,groupId"}
+		err = &e.NoAccess{Field: "flatId,groupId"}
 	}
 
 	return err

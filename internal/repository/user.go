@@ -28,7 +28,7 @@ func (repo userRepository) GetUserById(id string) (*model.User, error) {
 	err := repo.db.First(&userRecord).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = &e.KeyNotFound{Msg: "not-found", Field: "id"}
+		err = &e.KeyNotFound{Field: "id"}
 	}
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (repo userRepository) GetUserByAuthToken(authToken string) (*model.User, er
 	err := repo.db.Where(&entity.User{AuthToken: authToken}).First(&userRecord).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = &e.KeyNotFound{Msg: "not-found", Field: "auth_token"}
+		err = &e.KeyNotFound{Field: "auth_token"}
 	}
 	if err != nil {
 		return nil, err
@@ -61,13 +61,13 @@ func (repo userRepository) CreateUser(user *model.User) error {
 	err := repo.db.Where(&entity.User{AuthToken: userRecord.AuthToken}).First(&entity.User{}).Error
 
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return &e.KeyAlreadyExist{Msg: "unique", Field: "auth_token"}
+		return &e.KeyAlreadyExist{Field: "auth_token"}
 	}
 
 	err = repo.db.Create(&userRecord).Error
 
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		err = &e.KeyAlreadyExist{Msg: "unique", Field: "id"}
+		err = &e.KeyAlreadyExist{Field: "id"}
 	}
 	if err != nil {
 		return err

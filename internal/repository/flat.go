@@ -60,7 +60,9 @@ func (repo flatRepository) CreateFlat(flat *model.Flat) error {
 		err := tx.Create(&flatRecord).Error
 
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			err = &e.KeyAlreadyExist{Msg: "unique", Field: "address"}
+			err = &e.KeyAlreadyExist{Field: "address"}
+		} else if errors.Is(err, gorm.ErrForeignKeyViolated) {
+			err = &e.KeyNotFound{Field: "ownerId"}
 		}
 		if err != nil {
 			return err
@@ -82,7 +84,7 @@ func (repo flatRepository) DeleteFlat(flatId uint64, userId string) error {
 	err := repo.db.Model(&entity.Flat{}).Where(flatId).Pluck("owner_id", &ownerId).Error
 
 	if ownerId == "" {
-		err = &e.KeyNotFound{Msg: "not-found", Field: "id"}
+		err = &e.KeyNotFound{Field: "id"}
 	}
 	if err != nil {
 		return err
@@ -92,7 +94,7 @@ func (repo flatRepository) DeleteFlat(flatId uint64, userId string) error {
 		res := repo.db.Delete(&entity.UserFlat{UserId: userId, FlatId: flatId})
 
 		if res.RowsAffected == 0 {
-			err = &e.ForbiddenAction{Msg: "has", Field: "userId,flatId"}
+			err = &e.NoAccess{Field: "userId,flatId"}
 		}
 		if err != nil {
 			return err
@@ -117,21 +119,21 @@ func (repo flatRepository) UpdateFlat(flat *model.Flat, userId string) error {
 		&entity.UserFlat{FlatId: flat.Id}).Pluck("user_id", &userIds).Error
 
 	if len(userIds) == 0 {
-		err = &e.KeyNotFound{Msg: "not-found", Field: "id"}
+		err = &e.KeyNotFound{Field: "id"}
 	}
 	if err != nil {
 		return err
 	}
 
 	if ok := slices.Contains(userIds, userId); !ok {
-		return &e.ForbiddenAction{Msg: "has", Field: "userId,flatId"}
+		return &e.NoAccess{Field: "userId,flatId"}
 	}
 
 	flatRecord := model.FlatToEntity(*flat)
 	err = repo.db.Model(&flatRecord).Clauses(clause.Returning{}).Updates(flatRecord).Error
 
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		err = &e.KeyAlreadyExist{Msg: "unique", Field: "address"}
+		err = &e.KeyAlreadyExist{Field: "address"}
 	}
 	if err != nil {
 		return err
