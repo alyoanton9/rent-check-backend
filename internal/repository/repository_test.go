@@ -17,7 +17,7 @@ func TestRepository(t *testing.T) {
 
 	userRepo := NewUserRepository(db)
 
-	user := model.User{Id: "1", AuthToken: "OAuth test1"}
+	user := model.User{Login: "login", PasswordHash: "hash"}
 	err = userRepo.CreateUser(&user)
 
 	require.NoError(t, err)

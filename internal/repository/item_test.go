@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-func testItemRepository(t *testing.T, repo ItemRepository, userId string) {
-	userIdNotFound := "111"
+func testItemRepository(t *testing.T, repo ItemRepository, userId uint64) {
+	var userIdNotFound uint64 = 111
 	var flatId uint64 = 2
 	var groupIds = []uint64{2, 3, 1}
 
@@ -100,20 +100,20 @@ func testCreateItem(t *testing.T, repo ItemRepository, items *[]model.Item) {
 	})
 }
 
-func testGetItems(t *testing.T, repo ItemRepository, items *[]model.Item, ownerId, ownerIdNotFound string) {
+func testGetItems(t *testing.T, repo ItemRepository, items *[]model.Item, userId, userIdNotFound uint64) {
 	tests := []struct {
 		name          string
-		userId        string
+		userId        uint64
 		expectedItems []model.Item
 	}{
 		{
 			name:          "non-empty",
-			userId:        ownerId,
+			userId:        userId,
 			expectedItems: (*items)[:3],
 		},
 		{
 			name:          "empty",
-			userId:        ownerIdNotFound,
+			userId:        userIdNotFound,
 			expectedItems: nil,
 		},
 	}
@@ -129,20 +129,20 @@ func testGetItems(t *testing.T, repo ItemRepository, items *[]model.Item, ownerI
 	})
 }
 
-func testUpdateItems(t *testing.T, repo ItemRepository, items *[]model.Item, ownerId, ownerIdNotFound string) {
+func testUpdateItems(t *testing.T, repo ItemRepository, items *[]model.Item, userId, userIdNotFound uint64) {
 	(*items)[0].Title = "d"
 
 	tests := []struct {
 		name          string
 		itemToUpdate  *model.Item
-		userId        string
+		userId        uint64
 		expectedError error
 		expectedTitle string
 	}{
 		{
 			name:          "valid",
 			itemToUpdate:  &(*items)[0],
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: nil,
 			expectedTitle: "d",
 		},
@@ -150,9 +150,9 @@ func testUpdateItems(t *testing.T, repo ItemRepository, items *[]model.Item, own
 			name: "not found",
 			itemToUpdate: &model.Item{
 				Id:     100,
-				UserId: ownerId,
+				UserId: userId,
 			},
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: &e.KeyNotFound{Field: "itemId"},
 		},
 		{
@@ -160,18 +160,18 @@ func testUpdateItems(t *testing.T, repo ItemRepository, items *[]model.Item, own
 			itemToUpdate: &model.Item{
 				Id:     1,
 				Title:  "b",
-				UserId: ownerId,
+				UserId: userId,
 			},
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: &e.KeyAlreadyExist{Field: "title"},
 		},
 		{
 			name: "user has no access to item",
 			itemToUpdate: &model.Item{
 				Id:     1,
-				UserId: ownerId,
+				UserId: userId,
 			},
-			userId:        ownerIdNotFound,
+			userId:        userIdNotFound,
 			expectedError: &e.NoAccess{Field: "userId,itemId"},
 		},
 	}
@@ -192,31 +192,31 @@ func testUpdateItems(t *testing.T, repo ItemRepository, items *[]model.Item, own
 }
 
 // TODO add more cases after un-hide logic implemented
-func testHideItem(t *testing.T, repo ItemRepository, items *[]model.Item, ownerId, ownerIdNotFound string) {
+func testHideItem(t *testing.T, repo ItemRepository, items *[]model.Item, userId, userIdNotFound uint64) {
 	tests := []struct {
 		name              string
 		itemId            uint64
-		userId            string
+		userId            uint64
 		expectedError     error
 		expectedRestItems []model.Item
 	}{
 		{
 			name:              "valid",
 			itemId:            (*items)[0].Id,
-			userId:            ownerId,
+			userId:            userId,
 			expectedError:     nil,
 			expectedRestItems: (*items)[1:3],
 		},
 		{
 			name:          "not found",
 			itemId:        (*items)[0].Id,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: &e.KeyNotFound{Field: "itemId"},
 		},
 		{
 			name:          "user has no access to item",
 			itemId:        (*items)[1].Id,
-			userId:        ownerIdNotFound,
+			userId:        userIdNotFound,
 			expectedError: &e.NoAccess{Field: "userId,itemId"},
 		},
 	}
@@ -242,13 +242,13 @@ func testHideItem(t *testing.T, repo ItemRepository, items *[]model.Item, ownerI
 }
 
 func testAddItemToGroup(t *testing.T, repo ItemRepository, items *[]model.Item,
-	flatId uint64, groupIds []uint64, ownerId, ownerIdNotFound string) {
+	flatId uint64, groupIds []uint64, userId, userIdNotFound uint64) {
 	tests := []struct {
 		name          string
 		itemId        uint64
 		groupId       uint64
 		flatId        uint64
-		userId        string
+		userId        uint64
 		expectedError error
 	}{
 		{
@@ -256,7 +256,7 @@ func testAddItemToGroup(t *testing.T, repo ItemRepository, items *[]model.Item,
 			itemId:        (*items)[1].Id,
 			groupId:       groupIds[0],
 			flatId:        flatId,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: nil,
 		},
 		{
@@ -264,19 +264,19 @@ func testAddItemToGroup(t *testing.T, repo ItemRepository, items *[]model.Item,
 			itemId:        (*items)[2].Id,
 			groupId:       groupIds[0],
 			flatId:        flatId,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: nil,
 		},
 		{
 			name:          "user has no access to flat",
 			itemId:        (*items)[2].Id,
-			userId:        ownerIdNotFound,
+			userId:        userIdNotFound,
 			expectedError: &e.NoAccess{Field: "userId,flatId"},
 		},
 		{
 			name:          "not found",
 			itemId:        (*items)[0].Id,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: &e.KeyNotFound{Field: "itemId"},
 		},
 		{
@@ -284,7 +284,7 @@ func testAddItemToGroup(t *testing.T, repo ItemRepository, items *[]model.Item,
 			itemId:        (*items)[2].Id,
 			groupId:       groupIds[0],
 			flatId:        flatId,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: &e.KeyAlreadyExist{Field: "flatId,groupId,itemId"},
 		},
 	}
@@ -303,7 +303,7 @@ func testAddItemToGroup(t *testing.T, repo ItemRepository, items *[]model.Item,
 	})
 }
 
-func testUpdateItemStatus(t *testing.T, repo ItemRepository, items *[]model.Item, flatId uint64, groupIds []uint64, userId string) {
+func testUpdateItemStatus(t *testing.T, repo ItemRepository, items *[]model.Item, flatId uint64, groupIds []uint64, userId uint64) {
 	tests := []struct {
 		name          string
 		itemId        uint64
@@ -341,7 +341,7 @@ func testUpdateItemStatus(t *testing.T, repo ItemRepository, items *[]model.Item
 }
 
 func testGetFlatItems(t *testing.T, repo ItemRepository, items *[]model.Item,
-	flatId uint64, groupIds []uint64, ownerId string) {
+	flatId uint64, groupIds []uint64, userId uint64) {
 	tests := []struct {
 		name               string
 		expectedGroupItems []model.GroupItems
@@ -373,7 +373,7 @@ func testGetFlatItems(t *testing.T, repo ItemRepository, items *[]model.Item,
 	t.Run("GetFlatItems", func(t *testing.T) {
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				actualGroupItems, err := repo.GetFlatItems(flatId, ownerId)
+				actualGroupItems, err := repo.GetFlatItems(flatId, userId)
 
 				require.NoError(t, err)
 
@@ -402,13 +402,13 @@ func testGetFlatItems(t *testing.T, repo ItemRepository, items *[]model.Item,
 }
 
 func testDeleteItemFromGroup(t *testing.T, repo ItemRepository, items *[]model.Item,
-	flatId uint64, groupIds []uint64, ownerId, ownerIdNotFound string) {
+	flatId uint64, groupIds []uint64, userId, userIdNotFound uint64) {
 	tests := []struct {
 		name          string
 		itemId        uint64
 		groupId       uint64
 		flatId        uint64
-		userId        string
+		userId        uint64
 		expectedError error
 	}{
 		{
@@ -416,13 +416,13 @@ func testDeleteItemFromGroup(t *testing.T, repo ItemRepository, items *[]model.I
 			itemId:        (*items)[1].Id,
 			groupId:       groupIds[0],
 			flatId:        flatId,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: nil,
 		},
 		{
 			name:          "user has no access to flat",
 			itemId:        (*items)[2].Id,
-			userId:        ownerIdNotFound,
+			userId:        userIdNotFound,
 			expectedError: &e.NoAccess{Field: "userId,flatId"},
 		},
 		{
@@ -430,7 +430,7 @@ func testDeleteItemFromGroup(t *testing.T, repo ItemRepository, items *[]model.I
 			itemId:        (*items)[2].Id,
 			groupId:       groupIds[2],
 			flatId:        flatId,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: &e.NoAccess{Field: "flatId,groupId"},
 		},
 		{
@@ -438,13 +438,13 @@ func testDeleteItemFromGroup(t *testing.T, repo ItemRepository, items *[]model.I
 			itemId:        (*items)[2].Id,
 			groupId:       groupIds[0],
 			flatId:        flatId,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: nil,
 		},
 		{
 			name:          "not found",
 			itemId:        (*items)[0].Id,
-			userId:        ownerId,
+			userId:        userId,
 			expectedError: &e.KeyNotFound{Field: "itemId"},
 		},
 	}

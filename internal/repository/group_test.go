@@ -8,8 +8,8 @@ import (
 	"testing"
 )
 
-func testGroupRepository(t *testing.T, repo GroupRepository, userId string) {
-	userIdNotFound := "111"
+func testGroupRepository(t *testing.T, repo GroupRepository, userId uint64) {
+	var userIdNotFound uint64 = 111
 	var flatId uint64 = 2
 
 	groups := []model.Group{
@@ -100,10 +100,10 @@ func testCreateGroup(t *testing.T, repo GroupRepository, groups *[]model.Group) 
 	})
 }
 
-func testGetGroups(t *testing.T, repo GroupRepository, groups *[]model.Group, userId, userIdNotFound string) {
+func testGetGroups(t *testing.T, repo GroupRepository, groups *[]model.Group, userId, userIdNotFound uint64) {
 	tests := []struct {
 		name           string
-		userId         string
+		userId         uint64
 		groupIds       []uint64
 		expectedGroups []model.Group
 	}{
@@ -136,13 +136,13 @@ func testGetGroups(t *testing.T, repo GroupRepository, groups *[]model.Group, us
 	})
 }
 
-func testUpdateGroup(t *testing.T, repo GroupRepository, groups *[]model.Group, userId, userIdNotFound string) {
+func testUpdateGroup(t *testing.T, repo GroupRepository, groups *[]model.Group, userId, userIdNotFound uint64) {
 	(*groups)[0].Title = "d"
 
 	tests := []struct {
 		name          string
 		groupToUpdate *model.Group
-		userId        string
+		userId        uint64
 		expectedError error
 		expectedTitle string
 	}{
@@ -199,11 +199,11 @@ func testUpdateGroup(t *testing.T, repo GroupRepository, groups *[]model.Group, 
 }
 
 // TODO add more cases after un-hide logic implemented
-func testHideGroup(t *testing.T, repo GroupRepository, groups *[]model.Group, userId, userIdNotFound string) {
+func testHideGroup(t *testing.T, repo GroupRepository, groups *[]model.Group, userId, userIdNotFound uint64) {
 	tests := []struct {
 		name               string
 		groupId            uint64
-		userId             string
+		userId             uint64
 		expectedError      error
 		expectedRestGroups []model.Group
 	}{
@@ -250,11 +250,11 @@ func testHideGroup(t *testing.T, repo GroupRepository, groups *[]model.Group, us
 }
 
 func testAddGroupToFlat(t *testing.T, repo GroupRepository, groups *[]model.Group,
-	flatId uint64, userId, userIdNotFound string) {
+	flatId uint64, userId, userIdNotFound uint64) {
 	tests := []struct {
 		name          string
 		groupId       uint64
-		userId        string
+		userId        uint64
 		expectedError error
 	}{
 		{
@@ -303,11 +303,11 @@ func testAddGroupToFlat(t *testing.T, repo GroupRepository, groups *[]model.Grou
 	})
 }
 
-func testDeleteGroupFromFlat(t *testing.T, repo GroupRepository, groups *[]model.Group, flatId uint64, userId string) {
+func testDeleteGroupFromFlat(t *testing.T, repo GroupRepository, groups *[]model.Group, flatId uint64, userId uint64) {
 	tests := []struct {
 		name          string
 		groupId       uint64
-		userId        string
+		userId        uint64
 		expectedError error
 	}{
 		{
