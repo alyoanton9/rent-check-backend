@@ -29,8 +29,9 @@ func Setup(e *echo.Echo, h handler.Handler) {
 	group.GET("/flats/:flatId/items", h.GetFlatItems)
 	group.POST("/items/status", h.UpdateItemStatus)
 
-	group.POST("/register", h.RegisterUser)
+	group.POST("/auth/register", h.Register)
+	group.POST("/auth/login", h.Login)
+	group.POST("/auth/logout", h.Logout)
 
 	group.GET("", h.HomePage)
-
 }

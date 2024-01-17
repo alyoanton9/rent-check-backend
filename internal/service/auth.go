@@ -1,38 +1,40 @@
 package service
 
-import "fmt"
+import (
+	"github.com/golang-jwt/jwt"
+	"math/rand"
+)
 
 type AuthService interface {
-	AuthenticateUser(authToken string, refreshToken string) (string, error)
 	GetAuthScheme() string
+	CreateToken(login string) (string, error)
 }
 
-type authService struct{}
+type authService struct {
+	secret []byte
+}
 
-func NewAuthService() AuthService {
-	return authService{}
+func NewAuthService(secret string) AuthService {
+	return authService{secret: []byte(secret)}
 }
 
 func (s authService) GetAuthScheme() string {
-	return "OAuth"
+	return "Bearer"
 }
 
-func (s authService) AuthenticateUser(authToken string, refreshToken string) (string, error) {
-	// TODO: implementation to use Google Identity and others
-	switch authToken {
-	case "test":
-		return "0", nil
-	case "test1":
-		return "1", nil
-	case "test2":
-		return "2", nil
-	case "test3":
-		return "3", nil
-	case "test4":
-		return "4", nil
-	case "test5":
-		return "5", nil
-	default:
-		return "", fmt.Errorf("invalid auth token")
+func (s authService) CreateToken(login string) (string, error) {
+	salt := rand.Int()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"login": login,
+			"salt":  salt,
+		})
+
+	tokenString, err := token.SignedString(s.secret)
+
+	if err != nil {
+		return "", err
 	}
+
+	return tokenString, nil
 }
