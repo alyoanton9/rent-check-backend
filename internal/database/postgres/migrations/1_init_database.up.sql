@@ -1,6 +1,8 @@
 CREATE TABLE "users" (
-                         "id" varchar PRIMARY KEY,
-                         "auth_token" varchar UNIQUE NOT NULL
+                         "id" bigserial PRIMARY KEY,
+                         "login" varchar UNIQUE NOT NULL,
+                         "password_hash" varchar NOT NULL,
+                         "auth_token" varchar UNIQUE
 );
 
 CREATE TABLE "flats" (
@@ -8,18 +10,18 @@ CREATE TABLE "flats" (
                          "title" varchar,
                          "description" varchar,
                          "address" varchar NOT NULL,
-                         "owner_id" varchar NOT NULL
+                         "owner_id" bigint NOT NULL
 );
 
 CREATE TABLE "user_flats" (
-                              "user_id" varchar,
+                              "user_id" bigint,
                               "flat_id" bigint,
                               PRIMARY KEY ("user_id", "flat_id")
 );
 
 CREATE TABLE "groups" (
                           "id" bigserial PRIMARY KEY,
-                          "user_id" varchar NOT NULL,
+                          "user_id" bigint NOT NULL,
                           "title" varchar NOT NULL,
                           "hide" bool NOT NULL
 );
@@ -41,6 +43,8 @@ CREATE TABLE "items" (
 );
 
 CREATE INDEX ON "users" ("auth_token");
+
+CREATE INDEX ON "users" ("login");
 
 CREATE UNIQUE INDEX ON "flats" ("address", "owner_id");
 

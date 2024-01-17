@@ -2,7 +2,7 @@ ALTER TABLE "items" DROP COLUMN IF EXISTS "group_id";
 ALTER TABLE "items" DROP COLUMN IF EXISTS "flat_id";
 ALTER TABLE "items" DROP COLUMN IF EXISTS "status";
 
-ALTER TABLE "items" ADD COLUMN "user_id" varchar NOT NULL default '1';
+ALTER TABLE "items" ADD COLUMN "user_id" bigint NOT NULL default 0;
 
 CREATE UNIQUE INDEX ON "items" ("title", "user_id");
 

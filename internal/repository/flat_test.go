@@ -8,8 +8,8 @@ import (
 	"testing"
 )
 
-func testFlatRepository(t *testing.T, repo FlatRepository, ownerId string) {
-	ownerIdNotFound := "111"
+func testFlatRepository(t *testing.T, repo FlatRepository, ownerId uint64) {
+	var ownerIdNotFound uint64 = 111
 
 	flats := []model.Flat{
 		{
@@ -82,10 +82,10 @@ func testCreateFlat(t *testing.T, repo FlatRepository, flats *[]model.Flat) {
 	})
 }
 
-func testGetFlats(t *testing.T, repo FlatRepository, flats *[]model.Flat, ownerId, ownerIdNotFound string) {
+func testGetFlats(t *testing.T, repo FlatRepository, flats *[]model.Flat, ownerId, ownerIdNotFound uint64) {
 	tests := []struct {
 		name          string
-		userId        string
+		userId        uint64
 		expectedFlats []model.Flat
 	}{
 		{
@@ -112,11 +112,11 @@ func testGetFlats(t *testing.T, repo FlatRepository, flats *[]model.Flat, ownerI
 	})
 }
 
-func testUpdateFlat(t *testing.T, repo FlatRepository, ownerId, ownerIdNotFound string) {
+func testUpdateFlat(t *testing.T, repo FlatRepository, ownerId, ownerIdNotFound uint64) {
 	tests := []struct {
 		name            string
 		flatToUpdate    *model.Flat
-		userId          string
+		userId          uint64
 		expectedError   error
 		expectedAddress string
 	}{
@@ -176,11 +176,11 @@ func testUpdateFlat(t *testing.T, repo FlatRepository, ownerId, ownerIdNotFound 
 	})
 }
 
-func testDeleteFlat(t *testing.T, repo FlatRepository, flats *[]model.Flat, ownerId, ownerIdNotFound string) {
+func testDeleteFlat(t *testing.T, repo FlatRepository, flats *[]model.Flat, ownerId, ownerIdNotFound uint64) {
 	tests := []struct {
 		name          string
 		flatId        uint64
-		userId        string
+		userId        uint64
 		expectedError error
 	}{
 		{

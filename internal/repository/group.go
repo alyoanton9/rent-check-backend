@@ -11,12 +11,12 @@ import (
 )
 
 type GroupRepository interface {
-	GetGroups(userId string, ids []uint64) ([]model.Group, error)
+	GetGroups(userId uint64, ids []uint64) ([]model.Group, error)
 	CreateGroup(group *model.Group) error
-	UpdateGroup(group *model.Group, userId string) error
-	AddGroupToFlat(groupId, flatId uint64, userId string) error
-	DeleteGroupFromFlat(groupId uint64, flatId uint64, userId string) error
-	HideGroup(groupId uint64, userId string) error
+	UpdateGroup(group *model.Group, userId uint64) error
+	AddGroupToFlat(groupId, flatId uint64, userId uint64) error
+	DeleteGroupFromFlat(groupId uint64, flatId uint64, userId uint64) error
+	HideGroup(groupId uint64, userId uint64) error
 }
 
 type groupRepository struct {
@@ -27,7 +27,7 @@ func NewGroupRepository(db *gorm.DB) GroupRepository {
 	return groupRepository{db: db}
 }
 
-func (repo groupRepository) GetGroups(userId string, ids []uint64) ([]model.Group, error) {
+func (repo groupRepository) GetGroups(userId uint64, ids []uint64) ([]model.Group, error) {
 	var groupRecords []entity.Group
 
 	err := repo.db.Model(&[]entity.Group{}).Where(ids).Where(
@@ -67,7 +67,7 @@ func (repo groupRepository) CreateGroup(group *model.Group) error {
 	return nil
 }
 
-func (repo groupRepository) UpdateGroup(group *model.Group, userId string) error {
+func (repo groupRepository) UpdateGroup(group *model.Group, userId uint64) error {
 	err := checkUserHasGroup(repo.db, group.Id, userId)
 	if err != nil {
 		return err
@@ -88,7 +88,7 @@ func (repo groupRepository) UpdateGroup(group *model.Group, userId string) error
 	return nil
 }
 
-func (repo groupRepository) AddGroupToFlat(groupId, flatId uint64, userId string) error {
+func (repo groupRepository) AddGroupToFlat(groupId, flatId uint64, userId uint64) error {
 	err := checkUserHasFlat(repo.db, userId, flatId)
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func (repo groupRepository) AddGroupToFlat(groupId, flatId uint64, userId string
 	return err
 }
 
-func (repo groupRepository) DeleteGroupFromFlat(groupId, flatId uint64, userId string) error {
+func (repo groupRepository) DeleteGroupFromFlat(groupId, flatId uint64, userId uint64) error {
 	err := checkUserHasGroup(repo.db, groupId, userId)
 	if err != nil {
 		return err
@@ -132,7 +132,7 @@ func (repo groupRepository) DeleteGroupFromFlat(groupId, flatId uint64, userId s
 	return err
 }
 
-func (repo groupRepository) HideGroup(groupId uint64, userId string) error {
+func (repo groupRepository) HideGroup(groupId uint64, userId uint64) error {
 	err := checkUserHasGroup(repo.db, groupId, userId)
 	if err != nil {
 		return err
@@ -142,12 +142,12 @@ func (repo groupRepository) HideGroup(groupId uint64, userId string) error {
 	return err
 }
 
-func checkUserHasGroup(db *gorm.DB, groupId uint64, userId string) error {
+func checkUserHasGroup(db *gorm.DB, groupId uint64, userId uint64) error {
 	groupRecord := entity.Group{Id: groupId}
 	err := db.First(&groupRecord).Error
 
 	switch {
-	case groupRecord.UserId == "" || groupRecord.Hide:
+	case groupRecord.UserId == 0 || groupRecord.Hide:
 		err = &e.KeyNotFound{Field: "groupId"}
 	case groupRecord.UserId == userId:
 		// ok
@@ -158,7 +158,7 @@ func checkUserHasGroup(db *gorm.DB, groupId uint64, userId string) error {
 	return err
 }
 
-func checkUserHasFlat(db *gorm.DB, userId string, flatId uint64) error {
+func checkUserHasFlat(db *gorm.DB, userId uint64, flatId uint64) error {
 	var userFlat entity.UserFlat
 	err := db.Where(entity.UserFlat{UserId: userId, FlatId: flatId}).First(&userFlat).Error
 

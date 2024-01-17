@@ -12,6 +12,7 @@ import (
 	"os"
 	"rent-checklist-backend/internal/config"
 	"rent-checklist-backend/internal/database/postgres"
+	"rent-checklist-backend/internal/encrypt"
 	"rent-checklist-backend/internal/handler"
 	"rent-checklist-backend/internal/middleware"
 	"rent-checklist-backend/internal/repository"
@@ -36,9 +37,10 @@ func App() {
 	flatRepository := repository.NewFlatRepository(db)
 	groupRepository := repository.NewGroupRepository(db)
 	itemRepository := repository.NewItemRepository(db)
-	authService := service.NewAuthService()
+	hasher := encrypt.NewHasher()
+	authService := service.NewAuthService("secret string!")
 
-	h := handler.NewHandler(userRepository, flatRepository, groupRepository, itemRepository, authService)
+	h := handler.NewHandler(userRepository, flatRepository, groupRepository, itemRepository, hasher, authService)
 
 	e := echo.New()
 
@@ -68,7 +70,6 @@ func App() {
 func initConfig() config.Config {
 	var appConfig config.Config
 
-	// TODO check necessity
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("failed to read .env file: %s", err.Error())

@@ -12,10 +12,10 @@ import (
 )
 
 type FlatRepository interface {
-	GetFlats(userId string) ([]model.Flat, error)
+	GetFlats(userId uint64) ([]model.Flat, error)
 	CreateFlat(flat *model.Flat) error
-	DeleteFlat(flatId uint64, userId string) error
-	UpdateFlat(flat *model.Flat, userId string) error
+	DeleteFlat(flatId uint64, userId uint64) error
+	UpdateFlat(flat *model.Flat, userId uint64) error
 }
 
 type flatRepository struct {
@@ -28,7 +28,7 @@ func NewFlatRepository(db *gorm.DB) FlatRepository {
 	}
 }
 
-func (repo flatRepository) GetFlats(userId string) ([]model.Flat, error) {
+func (repo flatRepository) GetFlats(userId uint64) ([]model.Flat, error) {
 	var flatIds []uint64
 	err := repo.db.Model(&[]entity.UserFlat{}).Where(
 		"user_id = ?", userId).Pluck("flat_id", &flatIds).Error
@@ -79,11 +79,11 @@ func (repo flatRepository) CreateFlat(flat *model.Flat) error {
 	return err
 }
 
-func (repo flatRepository) DeleteFlat(flatId uint64, userId string) error {
-	var ownerId string
+func (repo flatRepository) DeleteFlat(flatId uint64, userId uint64) error {
+	var ownerId uint64
 	err := repo.db.Model(&entity.Flat{}).Where(flatId).Pluck("owner_id", &ownerId).Error
 
-	if ownerId == "" {
+	if ownerId == 0 {
 		err = &e.KeyNotFound{Field: "id"}
 	}
 	if err != nil {
@@ -113,8 +113,8 @@ func (repo flatRepository) DeleteFlat(flatId uint64, userId string) error {
 	return err
 }
 
-func (repo flatRepository) UpdateFlat(flat *model.Flat, userId string) error {
-	var userIds []string
+func (repo flatRepository) UpdateFlat(flat *model.Flat, userId uint64) error {
+	var userIds []uint64
 	err := repo.db.Model(&entity.UserFlat{}).Where(
 		&entity.UserFlat{FlatId: flat.Id}).Pluck("user_id", &userIds).Error
 

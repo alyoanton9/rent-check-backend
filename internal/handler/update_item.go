@@ -8,7 +8,7 @@ import (
 )
 
 func (h handler) UpdateItem(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	itemId, err := ParsePathParamUInt64(ctx, "id")
 	if err != nil {
@@ -21,7 +21,7 @@ func (h handler) UpdateItem(ctx echo.Context) error {
 		return err
 	}
 
-	item := model.DtoToItem(*itemRequest, "")
+	item := model.DtoToItem(*itemRequest, 0)
 	item.Id = itemId
 
 	err = h.itemRepository.UpdateItem(&item, userId)

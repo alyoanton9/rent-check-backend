@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"rent-checklist-backend/internal/encrypt"
 	"rent-checklist-backend/internal/repository"
 	"rent-checklist-backend/internal/service"
 )
@@ -29,7 +30,9 @@ type Handler interface {
 	GetFlatItems(ctx echo.Context) error
 	UpdateItemStatus(ctx echo.Context) error
 
-	RegisterUser(ctx echo.Context) error
+	Register(ctx echo.Context) error
+	Login(ctx echo.Context) error
+	Logout(ctx echo.Context) error
 
 	HomePage(ctx echo.Context) error
 }
@@ -39,15 +42,18 @@ type handler struct {
 	flatRepository  repository.FlatRepository
 	groupRepository repository.GroupRepository
 	itemRepository  repository.ItemRepository
+	hasher          encrypt.Hasher
 	authService     service.AuthService
 }
 
-func NewHandler(user repository.UserRepository, flat repository.FlatRepository, group repository.GroupRepository, item repository.ItemRepository, auth service.AuthService) Handler {
+func NewHandler(user repository.UserRepository, flat repository.FlatRepository, group repository.GroupRepository,
+	item repository.ItemRepository, hasher encrypt.Hasher, auth service.AuthService) Handler {
 	return &handler{
 		userRepository:  user,
 		flatRepository:  flat,
 		groupRepository: group,
 		itemRepository:  item,
+		hasher:          hasher,
 		authService:     auth,
 	}
 }

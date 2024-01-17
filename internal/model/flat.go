@@ -10,10 +10,10 @@ type Flat struct {
 	Title       string
 	Description string
 	Address     string
-	OwnerId     string
+	OwnerId     uint64
 }
 
-func DtoToFlat(flatRequest dto.FlatRequest, ownerId string) Flat {
+func DtoToFlat(flatRequest dto.FlatRequest, ownerId uint64) Flat {
 	return Flat{
 		Title:       flatRequest.Title,
 		Description: flatRequest.Description,

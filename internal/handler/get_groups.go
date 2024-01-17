@@ -9,7 +9,7 @@ import (
 )
 
 func (h handler) GetGroups(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	idsString := ctx.QueryParam("ids")
 	ids := ParseQueryParamList(idsString)

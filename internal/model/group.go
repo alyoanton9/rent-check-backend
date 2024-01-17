@@ -7,12 +7,12 @@ import (
 
 type Group struct {
 	Id     uint64
-	UserId string
+	UserId uint64
 	Title  string
 	Hide   bool
 }
 
-func DtoToGroup(groupRequest dto.GroupRequest, userId string) Group {
+func DtoToGroup(groupRequest dto.GroupRequest, userId uint64) Group {
 	return Group{
 		Title:  groupRequest.Title,
 		UserId: userId,

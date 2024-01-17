@@ -8,7 +8,7 @@ import (
 )
 
 func (h handler) UpdateItemStatus(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	var itemStatusRequest *dto.ItemStatusRequest
 	err := ParseBody(ctx, &itemStatusRequest, "item status request")

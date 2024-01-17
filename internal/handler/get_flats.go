@@ -9,7 +9,7 @@ import (
 )
 
 func (h handler) GetFlats(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	flats, err := h.flatRepository.GetFlats(userId)
 	if err != nil {
