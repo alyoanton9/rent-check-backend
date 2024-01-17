@@ -8,7 +8,7 @@ import (
 )
 
 func (h handler) UpdateFlat(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	flatId, err := ParsePathParamUInt64(ctx, "id")
 	if err != nil {
@@ -21,7 +21,7 @@ func (h handler) UpdateFlat(ctx echo.Context) error {
 		return err
 	}
 
-	flat := model.DtoToFlat(*flatRequest, "")
+	flat := model.DtoToFlat(*flatRequest, 0)
 	flat.Id = flatId
 
 	err = h.flatRepository.UpdateFlat(&flat, userId)

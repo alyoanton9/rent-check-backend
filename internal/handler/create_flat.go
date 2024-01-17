@@ -8,7 +8,7 @@ import (
 )
 
 func (h handler) CreateFlat(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	var flatRequest *dto.FlatRequest
 	err := ParseBody(ctx, &flatRequest, "flat request")

@@ -8,7 +8,7 @@ import (
 )
 
 func (h handler) CreateItem(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	var itemRequest *dto.ItemRequest
 	err := ParseBody(ctx, &itemRequest, "item request")

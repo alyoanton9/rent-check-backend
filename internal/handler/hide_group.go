@@ -3,7 +3,7 @@ package handler
 import "github.com/labstack/echo/v4"
 
 func (h handler) HideGroup(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	groupId, err := ParsePathParamUInt64(ctx, "id")
 	if err != nil {

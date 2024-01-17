@@ -12,14 +12,14 @@ import (
 )
 
 type ItemRepository interface {
-	GetItems(userId string) ([]model.Item, error)
+	GetItems(userId uint64) ([]model.Item, error)
 	CreateItem(item *model.Item) error
-	UpdateItem(item *model.Item, userId string) error
-	HideItem(itemId uint64, userId string) error
-	AddItemToGroup(flatId, groupId, itemId uint64, userId string) error
-	DeleteItemFromGroup(flatId, groupId, itemId uint64, userId string) error
-	GetFlatItems(flatId uint64, userId string) ([]model.GroupItems, error)
-	UpdateItemStatus(flatId, groupId, itemId uint64, status model.Status, userId string) error
+	UpdateItem(item *model.Item, userId uint64) error
+	HideItem(itemId uint64, userId uint64) error
+	AddItemToGroup(flatId, groupId, itemId uint64, userId uint64) error
+	DeleteItemFromGroup(flatId, groupId, itemId uint64, userId uint64) error
+	GetFlatItems(flatId uint64, userId uint64) ([]model.GroupItems, error)
+	UpdateItemStatus(flatId, groupId, itemId uint64, status model.Status, userId uint64) error
 }
 
 type itemRepository struct {
@@ -30,7 +30,7 @@ func NewItemRepository(db *gorm.DB) ItemRepository {
 	return &itemRepository{db: db}
 }
 
-func (repo itemRepository) GetItems(userId string) ([]model.Item, error) {
+func (repo itemRepository) GetItems(userId uint64) ([]model.Item, error) {
 	var itemRecords []entity.Item
 	err := repo.db.Model(&[]entity.Item{}).Where(
 		"user_id = ? AND hide = false", userId).Find(&itemRecords).Error
@@ -72,7 +72,7 @@ func (repo itemRepository) CreateItem(item *model.Item) error {
 	return err
 }
 
-func (repo itemRepository) UpdateItem(item *model.Item, userId string) error {
+func (repo itemRepository) UpdateItem(item *model.Item, userId uint64) error {
 	err := checkUserHasItem(repo.db, item.Id, userId)
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (repo itemRepository) UpdateItem(item *model.Item, userId string) error {
 	return nil
 }
 
-func (repo itemRepository) HideItem(itemId uint64, userId string) error {
+func (repo itemRepository) HideItem(itemId uint64, userId uint64) error {
 	err := checkUserHasItem(repo.db, itemId, userId)
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func (repo itemRepository) HideItem(itemId uint64, userId string) error {
 	return err
 }
 
-func (repo itemRepository) AddItemToGroup(flatId, groupId, itemId uint64, userId string) error {
+func (repo itemRepository) AddItemToGroup(flatId, groupId, itemId uint64, userId uint64) error {
 	err := checkUserHasFlat(repo.db, userId, flatId)
 	if err != nil {
 		return err
@@ -130,7 +130,7 @@ func (repo itemRepository) AddItemToGroup(flatId, groupId, itemId uint64, userId
 	return err
 }
 
-func (repo itemRepository) DeleteItemFromGroup(flatId, groupId, itemId uint64, userId string) error {
+func (repo itemRepository) DeleteItemFromGroup(flatId, groupId, itemId uint64, userId uint64) error {
 	err := checkUserHasFlat(repo.db, userId, flatId)
 	if err != nil {
 		return err
@@ -154,7 +154,7 @@ func (repo itemRepository) DeleteItemFromGroup(flatId, groupId, itemId uint64, u
 	return err
 }
 
-func (repo itemRepository) GetFlatItems(flatId uint64, userId string) ([]model.GroupItems, error) {
+func (repo itemRepository) GetFlatItems(flatId uint64, userId uint64) ([]model.GroupItems, error) {
 	err := checkUserHasFlat(repo.db, userId, flatId)
 	if err != nil {
 		return nil, err
@@ -178,7 +178,7 @@ func (repo itemRepository) GetFlatItems(flatId uint64, userId string) ([]model.G
 	return model.EntitiesToGroupItems(groupItemsRecords), nil
 }
 
-func (repo itemRepository) UpdateItemStatus(flatId, groupId, itemId uint64, status model.Status, userId string) error {
+func (repo itemRepository) UpdateItemStatus(flatId, groupId, itemId uint64, status model.Status, userId uint64) error {
 	err := checkUserHasFlat(repo.db, userId, flatId)
 	if err != nil {
 		return err
@@ -205,12 +205,12 @@ func (repo itemRepository) UpdateItemStatus(flatId, groupId, itemId uint64, stat
 	return err
 }
 
-func checkUserHasItem(db *gorm.DB, itemId uint64, userId string) error {
+func checkUserHasItem(db *gorm.DB, itemId uint64, userId uint64) error {
 	itemRecord := entity.Item{Id: itemId}
 	err := db.First(&itemRecord).Error
 
 	switch {
-	case itemRecord.UserId == "" || itemRecord.Hide:
+	case itemRecord.UserId == 0 || itemRecord.Hide:
 		err = &e.KeyNotFound{Field: "itemId"}
 	case itemRecord.UserId == userId:
 		// ok

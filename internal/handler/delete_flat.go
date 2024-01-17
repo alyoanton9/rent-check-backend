@@ -5,7 +5,7 @@ import (
 )
 
 func (h handler) DeleteFlat(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	flatId, err := ParsePathParamUInt64(ctx, "id")
 	if err != nil {

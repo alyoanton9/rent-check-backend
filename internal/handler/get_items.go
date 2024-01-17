@@ -9,7 +9,7 @@ import (
 )
 
 func (h handler) GetItems(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	items, err := h.itemRepository.GetItems(userId)
 	if err != nil {

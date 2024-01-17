@@ -5,5 +5,5 @@ type Flat struct {
 	Title       string
 	Description string
 	Address     string `gorm:"not null"`
-	OwnerId     string `gorm:"not null"`
+	OwnerId     uint64 `gorm:"not null"`
 }

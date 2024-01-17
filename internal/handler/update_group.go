@@ -8,7 +8,7 @@ import (
 )
 
 func (h handler) UpdateGroup(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	groupId, err := ParsePathParamUInt64(ctx, "id")
 	if err != nil {
@@ -21,7 +21,7 @@ func (h handler) UpdateGroup(ctx echo.Context) error {
 		return err
 	}
 
-	group := model.DtoToGroup(*groupRequest, "")
+	group := model.DtoToGroup(*groupRequest, 0)
 	group.Id = groupId
 
 	err = h.groupRepository.UpdateGroup(&group, userId)

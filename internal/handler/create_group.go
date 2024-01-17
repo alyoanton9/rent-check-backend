@@ -8,7 +8,7 @@ import (
 )
 
 func (h handler) CreateGroup(ctx echo.Context) error {
-	userId := ctx.Get("userId").(string)
+	userId := ctx.Get("userId").(uint64)
 
 	var groupRequest *dto.GroupRequest
 	err := ParseBody(ctx, &groupRequest, "group request")

@@ -7,13 +7,13 @@ import (
 
 type Item struct {
 	Id          uint64
-	UserId      string
+	UserId      uint64
 	Title       string
 	Description string
 	Hide        bool
 }
 
-func DtoToItem(itemRequest dto.ItemRequest, userId string) Item {
+func DtoToItem(itemRequest dto.ItemRequest, userId uint64) Item {
 	return Item{
 		UserId:      userId,
 		Title:       itemRequest.Title,
