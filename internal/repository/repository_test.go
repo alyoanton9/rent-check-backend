@@ -39,4 +39,8 @@ func TestRepository(t *testing.T) {
 	t.Run("ItemRepository", func(t *testing.T) {
 		testItemRepository(t, itemRepo, user.Id)
 	})
+
+	t.Run("Mixed", func(t *testing.T) {
+		testMixedRepositories(t, flatRepo, groupRepo, itemRepo, user.Id)
+	})
 }
