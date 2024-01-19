@@ -163,11 +163,13 @@ func (repo itemRepository) GetFlatItems(flatId uint64, userId uint64) ([]model.G
 	groupItemsRecords := make([]entity.GroupItem, 0)
 
 	query := fmt.Sprintf(`
-		select items.id, title, description, user_id, hide, status, flat_groups.group_id
-		from flat_groups
-		left join flat_group_items on flat_groups.group_id=flat_group_items.group_id
-		left join items on items.id = flat_group_items.item_id
-		where flat_groups.flat_id=%d`, flatId)
+		SELECT items.id, title, description, user_id, hide, status, flat_groups.group_id
+		FROM flat_groups
+		LEFT JOIN flat_group_items
+		    ON flat_groups.flat_id=flat_group_items.flat_id
+		    AND flat_groups.group_id=flat_group_items.group_id
+		LEFT JOIN items ON items.id = flat_group_items.item_id
+		WHERE flat_groups.flat_id=%d`, flatId)
 
 	err = repo.db.Raw(query).Scan(&groupItemsRecords).Error
 
