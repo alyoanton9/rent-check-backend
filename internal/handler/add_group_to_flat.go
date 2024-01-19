@@ -13,15 +13,23 @@ func (h handler) AddGroupToFlat(ctx echo.Context) error {
 		return err
 	}
 
-	var groupIdRequest *dto.GroupIdRequest
-	err = ParseBody(ctx, &groupIdRequest, "group id request")
+	var groupIdFlatIdCopyRequest *dto.GroupIdFlatIdCopyRequest
+	err = ParseBody(ctx, &groupIdFlatIdCopyRequest, "group id flat id copy request")
 	if err != nil {
 		return err
 	}
 
-	err = h.groupRepository.AddGroupToFlat(groupIdRequest.Id, flatId, userId)
+	err = h.groupRepository.AddGroupToFlat(groupIdFlatIdCopyRequest.GroupId, flatId, userId)
 	if err != nil {
 		return HandleDbError(ctx, err, "error adding group to flat")
+	}
+
+	if groupIdFlatIdCopyRequest.FlatIdCopy != nil {
+		err = h.itemRepository.CopyItemsFromFlatGroup(
+			groupIdFlatIdCopyRequest.GroupId, flatId, *groupIdFlatIdCopyRequest.FlatIdCopy, userId)
+		if err != nil {
+			return HandleDbError(ctx, err, "error copying items from flat group")
+		}
 	}
 
 	return nil

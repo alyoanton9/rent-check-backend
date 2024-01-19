@@ -20,6 +20,7 @@ type ItemRepository interface {
 	DeleteItemFromGroup(flatId, groupId, itemId uint64, userId uint64) error
 	GetFlatItems(flatId uint64, userId uint64) ([]model.GroupItems, error)
 	UpdateItemStatus(flatId, groupId, itemId uint64, status model.Status, userId uint64) error
+	CopyItemsFromFlatGroup(groupId, flatId, flatIdCopy uint64, userId uint64) error
 }
 
 type itemRepository struct {
@@ -202,6 +203,43 @@ func (repo itemRepository) UpdateItemStatus(flatId, groupId, itemId uint64, stat
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = &e.KeyNotFound{Field: "flatId,groupId,itemId"}
+	}
+
+	return err
+}
+
+func (repo itemRepository) CopyItemsFromFlatGroup(groupId, flatId, flatIdCopy uint64, userId uint64) error {
+	err := checkUserHasFlat(repo.db, userId, flatId)
+	if err != nil {
+		return err
+	}
+
+	err = checkUserHasFlat(repo.db, userId, flatIdCopy)
+	if err != nil {
+		return err
+	}
+
+	err = checkUserHasGroup(repo.db, groupId, userId)
+	if err != nil {
+		return err
+	}
+
+	err = checkFlatHasGroup(repo.db, flatId, groupId)
+	if err != nil {
+		return err
+	}
+
+	status := model.Unset
+	query := fmt.Sprintf(`
+		INSERT INTO flat_group_items(flat_id, group_id, item_id, status)
+		SELECT %d, group_id, item_id, '%s'
+		FROM flat_group_items
+		WHERE group_id=%d AND flat_id=%d`,
+		flatId, status.String(), groupId, flatIdCopy)
+
+	err = repo.db.Exec(query).Error
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		err = &e.KeyAlreadyExist{Field: "flatId,groupId,itemId"}
 	}
 
 	return err
