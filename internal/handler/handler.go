@@ -20,6 +20,7 @@ type Handler interface {
 	AddGroupToFlat(ctx echo.Context) error
 	DeleteGroupFromFlat(ctx echo.Context) error
 	HideGroup(ctx echo.Context) error
+	GetGroupFlats(ctx echo.Context) error
 
 	GetItems(ctx echo.Context) error
 	CreateItem(ctx echo.Context) error

@@ -16,6 +16,8 @@ type FlatRepository interface {
 	CreateFlat(flat *model.Flat) error
 	DeleteFlat(flatId uint64, userId uint64) error
 	UpdateFlat(flat *model.Flat, userId uint64) error
+
+	GetFlatsByGroupId(groupId, userId uint64) ([]model.Flat, error)
 }
 
 type flatRepository struct {
@@ -142,4 +144,26 @@ func (repo flatRepository) UpdateFlat(flat *model.Flat, userId uint64) error {
 	*flat = model.EntityToFlat(flatRecord)
 
 	return nil
+}
+
+func (repo flatRepository) GetFlatsByGroupId(groupId, userId uint64) ([]model.Flat, error) {
+	err := checkUserHasGroup(repo.db, groupId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var flatRecords []entity.Flat
+
+	subQueryFlats := repo.db.Select("flat_id").Where("group_id=?", groupId).Table("flat_groups")
+	subQueryUsers := repo.db.Select("flat_id").Where("user_id=?", userId).Table("user_flats")
+	err = repo.db.Where("id IN (? INTERSECT ?)", subQueryFlats, subQueryUsers).Find(&flatRecords).Error
+	if err != nil {
+		return nil, err
+	}
+
+	flats := lo.Map(flatRecords, func(flat entity.Flat, _ int) model.Flat {
+		return model.EntityToFlat(flat)
+	})
+
+	return flats, nil
 }
