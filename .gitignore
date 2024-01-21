@@ -2,3 +2,5 @@
 
 # environment variables like postgres username and password
 .env
+
+rest-test

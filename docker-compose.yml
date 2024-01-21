@@ -21,6 +21,7 @@ services:
       start_period: 80s
 
   api:
+    # image: "cr.yandex/${REGISTRY_ID}/rent-checklist-backend"
     container_name: 'rent-checklist-api'
     hostname: api
     ports:
