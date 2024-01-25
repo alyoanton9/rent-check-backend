@@ -115,5 +115,5 @@ Docker serves as the deployment solution, here are the key characteristics of it
 - Integration of the [volume driver](https://docs.docker.com/storage/volumes/) for persistent storage
 
 ## Development Team <a name="dev-team"></a>
-- @alyoanton9: backend, business logic, UI design, logo creation 
-- @NewUserKK: frontend, business logic, UI design, idea
+- [@alyoanton9](https://github.com/alyoanton9): backend, business logic, UI design, logo creation 
+- [@NewUserKK](https://github.com/NewUserKK): frontend, business logic, UI design, idea
