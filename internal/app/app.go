@@ -2,10 +2,12 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
+	"golang.org/x/crypto/acme/autocert"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
@@ -59,10 +61,30 @@ func App() {
 		AllowHeaders: []string{echo.HeaderAuthorization, echo.HeaderContentType},
 	}))
 
+	e.Use(echoMiddleware.Recover())
+
 	route.Setup(e, h)
 
-	err = e.Start(fmt.Sprintf(":%s", appConfig.Port))
-	if err != nil {
+	domain := os.Getenv("DOMAIN")
+	certManager := autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		Cache:      autocert.DirCache("/var/www/.cache"),
+		HostPolicy: autocert.HostWhitelist(domain),
+	}
+
+	server := http.Server{
+		Addr:    fmt.Sprintf(":%s", appConfig.Port),
+		Handler: e,
+		TLSConfig: &tls.Config{
+			GetCertificate: certManager.GetCertificate,
+		},
+	}
+
+	// http server is needed to pass Let's Encrypt HTTP-01 challenge
+	httpPort := os.Getenv("HTTP_PORT")
+	go http.ListenAndServe(fmt.Sprintf(":%s", httpPort), certManager.HTTPHandler(nil))
+
+	if err := server.ListenAndServeTLS("", ""); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -75,7 +97,7 @@ func initConfig() config.Config {
 		log.Fatalf("failed to read .env file: %s", err.Error())
 	}
 
-	appConfig.Port = os.Getenv("HTTP_PORT")
+	appConfig.Port = os.Getenv("HTTPS_PORT")
 
 	appConfig.Postgres = postgres.Config{
 		Host:     os.Getenv("POSTGRES_HOST"),
