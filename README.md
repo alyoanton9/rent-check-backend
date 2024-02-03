@@ -100,6 +100,7 @@ The code is implemented in Go, using the following stack:
 - [Echo](https://echo.labstack.com/) as the web framework for HTTP routing
 - [jwt-go](https://pkg.go.dev/github.com/golang-jwt/jwt@v3.2.2+incompatible) for providing Bearer authentication tokens
 - [testify](https://pkg.go.dev/github.com/stretchr/testify) and [Testcontainers](https://golang.testcontainers.org/) for testing
+- [autocert](https://pkg.go.dev/golang.org/x/crypto/acme/autocert@v0.14.0) for automatic access to the [Let's Encrypt](https://letsencrypt.org/) TLS certificates
 - [Docker](https://www.docker.com/) for deployment
 - [Yandex Cloud](https://cloud.yandex.com/en/) for hosting
 
