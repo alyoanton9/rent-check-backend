@@ -2,7 +2,7 @@
 
 <img alt="logo" align="left" height="350" src="./assets/rent-check-logo.png" width="350"/>
 
-Rent Check is an application that serves as a convenient checklist designed to simplify your apartment rental experience.
+[Rent Check](https://rent-check-411212.web.app/) is an application that serves as a convenient checklist designed to simplify your apartment rental experience.
 
 The app streamlines apartment choice by categorizing check items, allowing you to create groups within each flat based on necessity (_must-have_ and _optional_), room-specific criteria (_bathroom_ and _bedroom_), and any other preferences you desire.
 
@@ -29,13 +29,19 @@ Note that currently, our app supports only one authentication method (refer to B
 
 Click the `+` button to add a flat. Provide the mandatory address and, optionally, a title and description. Upon completion, you'll be redirected to a dedicated page for the created flat.
 
+![add-flat](./assets/videos/add-flat.gif)
+
 ### Add Group
 
 Click the `+` button to add a group. Next, either assign a new unique title or select from existing groups – those you currently have or had across all flats. As a result, a new empty group is created.
 
+![add-group](./assets/videos/add-group.gif)
+
 ### Add Item
 
 Click the `+` button to the right of a group title to add an item to the specific group. Likewise for groups, provide either a new unique title or select an existing item. Thus, a new item is added to the group.
+
+![add-item](./assets/videos/add-item.gif)
 
 ### Set an Item Status
 
@@ -48,14 +54,23 @@ There are four statuses you can assign to an item:
 
 To change the status, simply tap on the item.
 
+![set-item-status](./assets/videos/set-item-status.gif)
+
+
 ### Delete Item
 Swipe an item to delete it from the group.
+
+![delete-item](./assets/videos/delete-item.gif)
 
 ### Delete Group
 To delete a group, click the 🗑️ button at the right.
 
+![delete-group](./assets/videos/delete-group.gif)
+
 ### Delete Flat
 To delete a flat, long tap on it
+
+![delete-flat](./assets/videos/delete-flat.gif)
 
 ## What's Next <a name="whats-next"></a>
 This version represents an MVP, with more exciting features coming!
