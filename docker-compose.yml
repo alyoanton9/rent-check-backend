@@ -25,7 +25,8 @@ services:
     container_name: 'rent-checklist-api'
     hostname: api
     ports:
-      - '2345:2345'
+      - '${HTTP_PORT}:80'
+      - '${HTTPS_PORT}:443'
     networks:
       - backend
     depends_on:
@@ -34,6 +35,8 @@ services:
     build: .
     env_file:
       - .env
+    volumes:
+      - cert-cache:/var/www/.cache
     restart: always
 
 networks:
@@ -42,3 +45,4 @@ networks:
 
 volumes:
   rent-checklist-volume:
+  cert-cache:

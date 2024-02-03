@@ -30,6 +30,7 @@ func MakeAuthConfig(authService service.AuthService, userRepository repository.U
 	authConfig.Skipper = func(ctx echo.Context) bool {
 		return ctx.Request().URL.Path == "/api/v1/auth/register" ||
 			ctx.Request().URL.Path == "/api/v1/auth/login" ||
+			ctx.Request().URL.Path == "/api/v1" ||
 			ctx.Request().Method == http.MethodOptions
 	}
 
